@@ -38,10 +38,14 @@ export async function POST(req: NextRequest) {
         const priceId = sub.items.data[0]?.price.id
         const plan = getPlanFromPriceId(priceId)
 
-        // Convertir la date d'expiration (Unix timestamp ou Date selon la version API)
-        const periodEnd = typeof sub.current_period_end === 'number'
-          ? new Date(sub.current_period_end * 1000).toISOString()
-          : new Date((sub as any).current_period_end).toISOString()
+        // Convertir la date d'expiration (champ renommé selon la version de l'API Stripe)
+        const subAny = sub as any
+        const rawPeriodEnd = subAny.current_period_end ?? subAny.billing_cycle_anchor ?? null
+        const periodEnd = rawPeriodEnd
+          ? (typeof rawPeriodEnd === 'number'
+              ? new Date(rawPeriodEnd * 1000).toISOString()
+              : new Date(rawPeriodEnd).toISOString())
+          : null
 
         const { error } = await supabase
           .from('profiles')

@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 const EMPTY_CLIENT = {
-  type: 'company' as const,
+  type: 'company' as 'company' | 'individual',
   company_name: '', first_name: '', last_name: '',
   email: '', phone: '', address: '', city: '', postal_code: '',
   country: 'France', siret: '', vat_number: '', notes: '',
