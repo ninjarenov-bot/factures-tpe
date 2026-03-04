@@ -92,7 +92,7 @@ export default function ProductsPage() {
           {loading ? (
             <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
           ) : filtered.length === 0 ? (
-            <EmptyState title="Aucun produit" description="Créez un catalogue de produits et services pour les ajouter facilement dans vos factures." icon={ArchiveBoxIcon} action={{ label: 'Ajouter un produit', href: '#' }} />
+            <EmptyState title="Aucun produit" description="Créez un catalogue de produits et services pour les ajouter facilement dans vos factures." icon={ArchiveBoxIcon} action={{ label: 'Ajouter un produit', onClick: openCreate }} />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
