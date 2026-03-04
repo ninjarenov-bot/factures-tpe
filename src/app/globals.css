@@ -22,6 +22,14 @@ body {
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
-  body { background: white; }
+  body { background: white !important; margin: 0 !important; padding: 0 !important; }
+  main { padding: 0 !important; background: white !important; }
+  #invoice-doc, #quote-doc {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+  }
+  @page { margin: 0; size: A4; }
 }
 .print-only { display: none; }
