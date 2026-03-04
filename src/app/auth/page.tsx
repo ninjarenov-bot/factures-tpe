@@ -67,7 +67,7 @@ export default function AuthPage() {
           <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg group-hover:shadow-indigo-200 transition-shadow">
             <DocumentCurrencyEuroIcon className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">FacturePro</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Factures TPE</h1>
         </a>
 
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
