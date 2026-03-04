@@ -416,7 +416,7 @@ function AbonnementContent() {
                   <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
                   <div>
                     <p className="font-semibold text-gray-800">Créer vos produits</p>
-                    <p className="text-gray-500">Dans le dashboard Stripe → <strong>Produits</strong> → créez "FacturePro Pro" (9€/mois) et "FacturePro Équipe" (19€/mois). Notez les <strong>ID de prix</strong> (format <code className="bg-gray-100 px-1 rounded">price_...</code>).</p>
+                    <p className="text-gray-500">Dans le dashboard Stripe → <strong>Produits</strong> → créez "Factures TPE Pro" (9€/mois) et "Factures TPE Équipe" (19€/mois). Notez les <strong>ID de prix</strong> (format <code className="bg-gray-100 px-1 rounded">price_...</code>).</p>
                   </div>
                 </li>
                 <li className="flex gap-3">

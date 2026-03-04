@@ -96,7 +96,7 @@ const testimonials = [
   {
     name: 'Marc Dupont',
     role: 'Plombier indépendant',
-    text: 'Je passais 2h par semaine sur ma facturation. Avec FacturePro, c\'est 15 minutes. Et mes clients reçoivent des factures professionnelles.',
+    text: 'Je passais 2h par semaine sur ma facturation. Avec Factures TPE, c\'est 15 minutes. Et mes clients reçoivent des factures professionnelles.',
     stars: 5,
   },
   {
@@ -123,7 +123,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
               <DocumentCurrencyEuroIcon className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold text-gray-900">FacturePro</span>
+            <span className="text-lg font-bold text-gray-900">Factures TPE</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
             <a href="#features" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
@@ -161,7 +161,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            FacturePro est la solution de facturation la plus simple pour les artisans et TPE. Créez des devis et factures professionnels en moins de 2 minutes — depuis votre téléphone ou votre ordinateur.
+            Factures TPE est la solution de facturation la plus simple pour les artisans et TPE. Créez des devis et factures professionnels en moins de 2 minutes — depuis votre téléphone ou votre ordinateur.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -341,9 +341,9 @@ export default function LandingPage() {
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
               <DocumentCurrencyEuroIcon className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-gray-900">FacturePro</span>
+            <span className="font-bold text-gray-900">Factures TPE</span>
           </div>
-          <p className="text-sm text-gray-400">© 2025 FacturePro — Solution de facturation pour artisans et TPE</p>
+          <p className="text-sm text-gray-400">© 2025 Factures TPE — Solution de facturation pour artisans et TPE</p>
           <div className="flex gap-4 text-sm text-gray-500">
             <Link href="/auth" className="hover:text-gray-900">Connexion</Link>
             <span>·</span>
