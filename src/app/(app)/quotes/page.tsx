@@ -8,8 +8,10 @@ import { Quote, QuoteStatus } from '@/types/database'
 import Header from '@/components/Header'
 import { QuoteStatusBadge } from '@/components/StatusBadge'
 import EmptyState from '@/components/EmptyState'
-import EmailModal from '@/components/EmailModal'
-import { ClipboardDocumentListIcon, PlusIcon, MagnifyingGlassIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
+import {
+  ClipboardDocumentListIcon, PlusIcon, MagnifyingGlassIcon,
+  EnvelopeIcon, PencilIcon, TrashIcon, CheckCircleIcon, ExclamationCircleIcon,
+} from '@heroicons/react/24/outline'
 
 const statusFilters: { label: string; value: QuoteStatus | 'all' }[] = [
   { label: 'Tous', value: 'all' },
@@ -19,6 +21,8 @@ const statusFilters: { label: string; value: QuoteStatus | 'all' }[] = [
   { label: 'Refusés', value: 'refused' },
 ]
 
+type Toast = { id: string; message: string; type: 'success' | 'error' }
+
 export default function QuotesPage() {
   const supabase = createClient()
   const [quotes, setQuotes] = useState<Quote[]>([])
@@ -26,8 +30,10 @@ export default function QuotesPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | 'all'>('all')
   const [profile, setProfile] = useState<{ email?: string; company_name?: string } | null>(null)
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null)
-  const [showEmail, setShowEmail] = useState(false)
+  const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set())
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set())
+  const [toasts, setToasts] = useState<Toast[]>([])
 
   useEffect(() => { loadQuotes() }, [])
 
@@ -53,11 +59,10 @@ export default function QuotesPage() {
     setLoading(false)
   }
 
-  function openEmailModal(quote: Quote, e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    setSelectedQuote(quote)
-    setShowEmail(true)
+  function addToast(message: string, type: 'success' | 'error') {
+    const id = Math.random().toString(36).slice(2)
+    setToasts(t => [...t, { id, message, type }])
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000)
   }
 
   function buildEmailBody(quote: Quote): string {
@@ -73,11 +78,61 @@ export default function QuotesPage() {
       `Montant TTC : ${amount}`,
       validUntil ? `Validité de l'offre : jusqu'au ${validUntil}` : '',
       '',
-      'N\'hésitez pas à nous contacter pour toute question ou pour valider ce devis.',
+      "N'hésitez pas à nous contacter pour toute question ou pour valider ce devis.",
       '',
-      `Cordialement,`,
+      'Cordialement,',
       company,
     ].filter((line, i, arr) => !(line === '' && arr[i - 1] === '')).join('\n')
+  }
+
+  async function sendEmailDirect(quote: Quote, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const clientEmail = (quote.client as any)?.email
+    if (!clientEmail) {
+      addToast("Ce client n'a pas d'adresse e-mail renseignée.", 'error')
+      return
+    }
+    setSendingIds(s => new Set(s).add(quote.id))
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: clientEmail,
+          cc: profile?.email || '',
+          subject: `Devis ${quote.number}${profile?.company_name ? ` — ${profile.company_name}` : ''}`,
+          message: buildEmailBody(quote),
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        addToast(data.error || "Erreur lors de l'envoi.", 'error')
+      } else {
+        addToast(`✓ Devis ${quote.number} envoyé à ${clientEmail}`, 'success')
+        setSentIds(s => new Set(s).add(quote.id))
+        setTimeout(() => setSentIds(s => { const n = new Set(s); n.delete(quote.id); return n }), 3000)
+      }
+    } catch {
+      addToast('Erreur réseau, veuillez réessayer.', 'error')
+    } finally {
+      setSendingIds(s => { const n = new Set(s); n.delete(quote.id); return n })
+    }
+  }
+
+  async function deleteQuote(quote: Quote, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!confirm(`Supprimer le devis ${quote.number} ?\nCette action est irréversible.`)) return
+    setDeletingIds(s => new Set(s).add(quote.id))
+    const { error } = await supabase.from('quotes').delete().eq('id', quote.id)
+    if (error) {
+      addToast('Erreur lors de la suppression.', 'error')
+    } else {
+      setQuotes(prev => prev.filter(q => q.id !== quote.id))
+      addToast(`Devis ${quote.number} supprimé.`, 'success')
+    }
+    setDeletingIds(s => { const n = new Set(s); n.delete(quote.id); return n })
   }
 
   const filtered = quotes.filter(q => {
@@ -159,9 +214,9 @@ export default function QuotesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filtered.map((quote) => (
-                    <tr key={quote.id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={quote.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-5 py-4">
-                        <Link href={`/quotes/${quote.id}`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+                        <Link href={`/quotes/${quote.id}`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 group-hover:underline">
                           {quote.number}
                         </Link>
                       </td>
@@ -180,15 +235,50 @@ export default function QuotesPage() {
                       <td className="px-5 py-4 text-center">
                         <QuoteStatusBadge status={quote.status} small />
                       </td>
-                      <td className="px-5 py-4 text-center">
-                        <button
-                          onClick={(e) => openEmailModal(quote, e)}
-                          title="Envoyer par e-mail"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-600 bg-violet-50 border border-violet-200 rounded-lg hover:bg-violet-100 hover:border-violet-300 transition-colors"
-                        >
-                          <EnvelopeIcon className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Envoyer</span>
-                        </button>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-center gap-1">
+                          {/* Modifier */}
+                          <Link
+                            href={`/quotes/${quote.id}`}
+                            onClick={e => e.stopPropagation()}
+                            title="Modifier"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </Link>
+                          {/* Envoyer */}
+                          <button
+                            onClick={(e) => sendEmailDirect(quote, e)}
+                            title="Envoyer par e-mail"
+                            disabled={sendingIds.has(quote.id)}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              sentIds.has(quote.id)
+                                ? 'text-green-600 bg-green-50'
+                                : 'text-gray-400 hover:text-violet-600 hover:bg-violet-50'
+                            }`}
+                          >
+                            {sendingIds.has(quote.id) ? (
+                              <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                            ) : sentIds.has(quote.id) ? (
+                              <CheckCircleIcon className="w-4 h-4" />
+                            ) : (
+                              <EnvelopeIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                          {/* Supprimer */}
+                          <button
+                            onClick={(e) => deleteQuote(quote, e)}
+                            title="Supprimer"
+                            disabled={deletingIds.has(quote.id)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            {deletingIds.has(quote.id) ? (
+                              <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <TrashIcon className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -199,19 +289,23 @@ export default function QuotesPage() {
         </div>
       </main>
 
-      {/* Email Modal */}
-      {selectedQuote && (
-        <EmailModal
-          isOpen={showEmail}
-          onClose={() => { setShowEmail(false); setSelectedQuote(null) }}
-          defaultTo={(selectedQuote.client as any)?.email || ''}
-          defaultCc={profile?.email || ''}
-          subject={`Devis ${selectedQuote.number}${profile?.company_name ? ` — ${profile.company_name}` : ''}`}
-          body={buildEmailBody(selectedQuote)}
-          docType="devis"
-          docNumber={selectedQuote.number}
-        />
-      )}
+      {/* Toasts */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
+        {toasts.map(toast => (
+          <div
+            key={toast.id}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white pointer-events-auto ${
+              toast.type === 'success' ? 'bg-green-600' : 'bg-red-500'
+            }`}
+          >
+            {toast.type === 'success'
+              ? <CheckCircleIcon className="w-4 h-4 flex-shrink-0" />
+              : <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
+            }
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
