@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { Client } from '@/types/database'
 import { getClientName } from '@/lib/utils'
@@ -8,7 +8,7 @@ import Header from '@/components/Header'
 import EmptyState from '@/components/EmptyState'
 import {
   UserGroupIcon, PlusIcon, MagnifyingGlassIcon,
-  PencilIcon, TrashIcon, XMarkIcon, CheckIcon
+  PencilIcon, TrashIcon, XMarkIcon, PhotoIcon, BuildingOfficeIcon, UserIcon
 } from '@heroicons/react/24/outline'
 
 const EMPTY_CLIENT = {
@@ -16,6 +16,7 @@ const EMPTY_CLIENT = {
   company_name: '', first_name: '', last_name: '',
   email: '', phone: '', address: '', city: '', postal_code: '',
   country: 'France', siret: '', vat_number: '', notes: '',
+  logo_url: '',
 }
 
 export default function ClientsPage() {
@@ -27,6 +28,10 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [form, setForm] = useState(EMPTY_CLIENT)
   const [saving, setSaving] = useState(false)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string>('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadClients() }, [])
 
@@ -41,6 +46,8 @@ export default function ClientsPage() {
   function openCreate() {
     setEditingClient(null)
     setForm(EMPTY_CLIENT)
+    setLogoFile(null)
+    setLogoPreview('')
     setShowModal(true)
   }
 
@@ -60,8 +67,39 @@ export default function ClientsPage() {
       siret: client.siret || '',
       vat_number: client.vat_number || '',
       notes: client.notes || '',
+      logo_url: client.logo_url || '',
     })
+    setLogoFile(null)
+    setLogoPreview(client.logo_url || '')
     setShowModal(true)
+  }
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  function removeLogo() {
+    setLogoFile(null)
+    setLogoPreview('')
+    setForm(f => ({ ...f, logo_url: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  async function uploadLogo(userId: string, clientId: string): Promise<string | null> {
+    if (!logoFile) return form.logo_url || null
+    setUploadingLogo(true)
+    const ext = logoFile.name.split('.').pop()
+    const path = `clients/${userId}/${clientId}.${ext}`
+    const { error } = await supabase.storage
+      .from('logos')
+      .upload(path, logoFile, { upsert: true })
+    setUploadingLogo(false)
+    if (error) { console.error('Upload logo:', error); return null }
+    const { data } = supabase.storage.from('logos').getPublicUrl(path)
+    return data.publicUrl
   }
 
   async function handleSave() {
@@ -69,12 +107,24 @@ export default function ClientsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const payload = { ...form, user_id: user.id }
     if (editingClient) {
+      // Mise à jour
+      const logoUrl = await uploadLogo(user.id, editingClient.id)
+      const payload = { ...form, logo_url: logoUrl, user_id: user.id }
       await supabase.from('clients').update(payload).eq('id', editingClient.id)
     } else {
-      await supabase.from('clients').insert(payload)
+      // Création : insérer d'abord pour obtenir l'id
+      const { data: newClient } = await supabase
+        .from('clients')
+        .insert({ ...form, logo_url: null, user_id: user.id })
+        .select()
+        .single()
+      if (newClient && logoFile) {
+        const logoUrl = await uploadLogo(user.id, newClient.id)
+        await supabase.from('clients').update({ logo_url: logoUrl }).eq('id', newClient.id)
+      }
     }
+
     await loadClients()
     setShowModal(false)
     setSaving(false)
@@ -146,9 +196,26 @@ export default function ClientsPage() {
                   {filtered.map((client) => (
                     <tr key={client.id} className="hover:bg-gray-50/50">
                       <td className="px-5 py-4">
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">{getClientName(client)}</p>
-                          <p className="text-xs text-gray-500">{client.type === 'company' ? 'Entreprise' : 'Particulier'}</p>
+                        <div className="flex items-center gap-3">
+                          {/* Avatar / Logo */}
+                          {client.logo_url ? (
+                            <img
+                              src={client.logo_url}
+                              alt={getClientName(client)}
+                              className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                              {client.type === 'company'
+                                ? <BuildingOfficeIcon className="w-5 h-5 text-indigo-500" />
+                                : <UserIcon className="w-5 h-5 text-indigo-500" />
+                              }
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900">{getClientName(client)}</p>
+                            <p className="text-xs text-gray-500">{client.type === 'company' ? 'Entreprise' : 'Particulier'}</p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-5 py-4 hidden sm:table-cell">
@@ -194,6 +261,57 @@ export default function ClientsPage() {
             </div>
 
             <div className="p-6 space-y-4">
+
+              {/* Upload Logo */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Logo du client</label>
+                <div className="flex items-center gap-4">
+                  {/* Preview */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors overflow-hidden flex-shrink-0"
+                  >
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo" className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <div className="text-center">
+                        <PhotoIcon className="w-7 h-7 text-gray-400 mx-auto" />
+                        <span className="text-xs text-gray-400 mt-1 block">Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Boutons */}
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
+                    >
+                      {logoPreview ? 'Changer le logo' : 'Choisir un logo'}
+                    </button>
+                    {logoPreview && (
+                      <button
+                        type="button"
+                        onClick={removeLogo}
+                        className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        Supprimer
+                      </button>
+                    )}
+                    <p className="text-xs text-gray-400">PNG, JPG — max 2 Mo</p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              <hr className="border-gray-100" />
+
               {/* Type */}
               <div className="flex gap-3">
                 {(['company', 'individual'] as const).map(t => (
@@ -235,8 +353,14 @@ export default function ClientsPage() {
               <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
                 Annuler
               </button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50">
-                {saving ? 'Sauvegarde...' : editingClient ? 'Modifier' : 'Créer'}
+              <button onClick={handleSave} disabled={saving || uploadingLogo} className="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {(saving || uploadingLogo) && (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                )}
+                {saving || uploadingLogo ? 'Sauvegarde...' : editingClient ? 'Modifier' : 'Créer'}
               </button>
             </div>
           </div>

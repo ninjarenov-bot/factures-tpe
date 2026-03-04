@@ -48,6 +48,7 @@ export interface Client {
   siret?: string
   vat_number?: string
   notes?: string
+  logo_url?: string
   is_active: boolean
   created_at: string
   updated_at: string
