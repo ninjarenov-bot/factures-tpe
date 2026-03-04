@@ -85,7 +85,8 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Toolbar */}
+
+      {/* ── TOOLBAR (no print) ── */}
       <div className="no-print">
         <Header
           title={`Facture ${invoice.number}`}
@@ -119,134 +120,164 @@ export default function InvoiceDetailPage() {
         />
       </div>
 
-      <main className="flex-1 p-4 sm:p-8 bg-[#F0F2F8]">
-        <div id="invoice-doc" className="bg-white max-w-4xl mx-auto shadow-lg rounded-2xl overflow-hidden relative">
+      <main className="flex-1 p-4 sm:p-8 bg-[#ECEEF4]">
+        <div id="invoice-doc" className="bg-white max-w-4xl mx-auto shadow-2xl rounded-2xl overflow-hidden relative">
 
-          {/* Watermark PAYÉE */}
+          {/* ── WATERMARK ── */}
           {isPaid && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 opacity-[0.06]">
-              <span className="text-green-700 font-black text-[120px] rotate-[-30deg] select-none tracking-widest">PAYÉE</span>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 opacity-[0.04] select-none">
+              <span className="text-green-600 font-black text-[130px] rotate-[-28deg] tracking-widest">PAYÉE</span>
             </div>
           )}
 
-          {/* ── ACCENT BAR ── */}
-          <div className="h-1.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-400" />
+          {/* ══════════════════════════════════════
+              DARK HEADER
+          ══════════════════════════════════════ */}
+          <div className="bg-slate-900 px-10 pt-10 pb-9 flex items-start justify-between gap-8">
 
-          {/* ── HEADER ── */}
-          <div className="px-10 pt-8 pb-6 flex items-start justify-between gap-6">
-            {/* Left: Logo + société */}
+            {/* Left — Company */}
             <div className="flex items-start gap-4 flex-1 min-w-0">
               {profile?.logo_url ? (
-                <img src={profile.logo_url} alt="Logo" className="w-20 h-20 object-contain rounded-xl flex-shrink-0 border border-gray-100" />
+                <img
+                  src={profile.logo_url}
+                  alt="Logo"
+                  className="w-[52px] h-[52px] object-contain rounded-xl flex-shrink-0 ring-1 ring-white/10"
+                />
               ) : (
-                <div className="w-20 h-20 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                  <span className="text-white font-black text-3xl">{(profile?.company_name || 'M').charAt(0)}</span>
+                <div className="w-[52px] h-[52px] rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-900/40">
+                  <span className="text-white font-black text-xl">
+                    {(profile?.company_name || 'M').charAt(0).toUpperCase()}
+                  </span>
                 </div>
               )}
               <div className="min-w-0">
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">{profile?.company_name || 'Mon Entreprise'}</h1>
-                {profile?.address && <p className="text-sm text-gray-500 mt-1">{profile.address}</p>}
-                {(profile?.postal_code || profile?.city) && (
-                  <p className="text-sm text-gray-500">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
-                )}
-                {profile?.phone && <p className="text-sm text-gray-500 mt-1">{profile.phone}</p>}
-                {profile?.email && <p className="text-sm text-gray-500">{profile.email}</p>}
-                {profile?.siret && <p className="text-xs text-gray-400 mt-1">SIRET : {profile.siret}</p>}
-                {profile?.vat_number && <p className="text-xs text-gray-400">N° TVA : {profile.vat_number}</p>}
+                <p className="text-white font-bold text-lg leading-tight truncate">
+                  {profile?.company_name || 'Mon Entreprise'}
+                </p>
+                <div className="mt-2 space-y-0.5">
+                  {profile?.address && <p className="text-slate-400 text-xs">{profile.address}</p>}
+                  {(profile?.postal_code || profile?.city) && (
+                    <p className="text-slate-400 text-xs">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
+                  )}
+                  {profile?.phone && <p className="text-slate-400 text-xs mt-1">{profile.phone}</p>}
+                  {profile?.email && <p className="text-slate-400 text-xs">{profile.email}</p>}
+                  {profile?.siret && <p className="text-slate-600 text-xs mt-1.5">SIRET : {profile.siret}</p>}
+                  {profile?.vat_number && <p className="text-slate-600 text-xs">N° TVA : {profile.vat_number}</p>}
+                </div>
               </div>
             </div>
 
-            {/* Right: FACTURE title + numéro + dates */}
+            {/* Right — Invoice ID */}
             <div className="text-right flex-shrink-0">
-              <p className="text-xs font-bold text-indigo-400 uppercase tracking-[0.25em] mb-1">Facture</p>
-              <p className="text-4xl font-black text-indigo-600 leading-none">{invoice.number}</p>
-              <div className="mt-3 space-y-1.5">
-                <div className="flex items-center justify-end gap-2">
-                  <span className="text-xs text-gray-400">Émis le</span>
-                  <span className="text-sm font-semibold text-gray-800">{formatDate(invoice.issue_date)}</span>
+              <span className="inline-block bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.3em] px-3 py-1 rounded-full">
+                Facture
+              </span>
+              <p className="text-white font-black text-5xl mt-2 leading-none tracking-tight">
+                {invoice.number}
+              </p>
+              <div className="mt-5 space-y-2 pt-4 border-t border-slate-700/50">
+                <div className="flex items-center justify-end gap-3">
+                  <span className="text-slate-500 text-xs">Émis le</span>
+                  <span className="text-slate-300 text-xs font-semibold">{formatDate(invoice.issue_date)}</span>
                 </div>
                 {invoice.due_date && (
-                  <div className="flex items-center justify-end gap-2">
-                    <span className="text-xs text-gray-400">Échéance</span>
-                    <span className={`text-sm font-semibold ${invoice.status === 'overdue' ? 'text-red-600' : 'text-gray-800'}`}>
+                  <div className="flex items-center justify-end gap-3">
+                    <span className="text-slate-500 text-xs">Échéance</span>
+                    <span className={`text-xs font-semibold ${invoice.status === 'overdue' ? 'text-red-400' : 'text-slate-300'}`}>
                       {formatDate(invoice.due_date)}
                     </span>
                   </div>
                 )}
                 {(invoice as any).paid_at && (
-                  <div className="flex items-center justify-end gap-2">
-                    <span className="text-xs text-gray-400">Payée le</span>
-                    <span className="text-sm font-semibold text-green-600">{formatDate((invoice as any).paid_at)}</span>
+                  <div className="flex items-center justify-end gap-3">
+                    <span className="text-slate-500 text-xs">Payée le</span>
+                    <span className="text-green-400 text-xs font-semibold">{formatDate((invoice as any).paid_at)}</span>
                   </div>
                 )}
-                <div className="mt-2"><InvoiceStatusBadge status={invoice.status} /></div>
+              </div>
+              <div className="mt-3">
+                <InvoiceStatusBadge status={invoice.status} />
               </div>
             </div>
           </div>
 
-          {/* ── ADDRESSES ── */}
-          <div className="px-10 pb-6 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-gray-50 border border-gray-100 p-5">
-              <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">Émetteur</p>
-              <p className="font-bold text-gray-900">{profile?.company_name || 'Mon Entreprise'}</p>
-              {profile?.address && <p className="text-sm text-gray-600 mt-1">{profile.address}</p>}
+          {/* Accent line */}
+          <div className="h-[3px] bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-400" />
+
+          {/* ══════════════════════════════════════
+              ADDRESSES
+          ══════════════════════════════════════ */}
+          <div className="px-10 py-9 grid grid-cols-2 gap-10">
+            {/* Emitter */}
+            <div>
+              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3">De</p>
+              <p className="font-bold text-gray-900 text-sm">{profile?.company_name || 'Mon Entreprise'}</p>
+              {profile?.address && <p className="text-sm text-gray-500 mt-1">{profile.address}</p>}
               {(profile?.postal_code || profile?.city) && (
-                <p className="text-sm text-gray-600">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
+                <p className="text-sm text-gray-500">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
               )}
-              {profile?.email && <p className="text-sm text-gray-600 mt-1">{profile.email}</p>}
-              {profile?.phone && <p className="text-sm text-gray-600">{profile.phone}</p>}
+              {profile?.email && <p className="text-sm text-gray-500 mt-1">{profile.email}</p>}
+              {profile?.phone && <p className="text-sm text-gray-500">{profile.phone}</p>}
             </div>
-            {client ? (
-              <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-5">
-                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">Facturé à</p>
-                <p className="font-bold text-gray-900">{getClientName(client)}</p>
-                {client.address && <p className="text-sm text-gray-600 mt-1">{client.address}</p>}
+
+            {/* Client */}
+            {client && (
+              <div className="pl-8 border-l-2 border-indigo-200">
+                <p className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-3">Facturé à</p>
+                <p className="font-bold text-gray-900 text-sm">{getClientName(client)}</p>
+                {client.address && <p className="text-sm text-gray-500 mt-1">{client.address}</p>}
                 {(client.postal_code || client.city) && (
-                  <p className="text-sm text-gray-600">{[client.postal_code, client.city].filter(Boolean).join(' ')}</p>
+                  <p className="text-sm text-gray-500">{[client.postal_code, client.city].filter(Boolean).join(' ')}</p>
                 )}
-                {client.email && <p className="text-sm text-gray-600 mt-1">{client.email}</p>}
-                {client.phone && <p className="text-sm text-gray-600">{client.phone}</p>}
-                {client.siret && <p className="text-xs text-gray-500 mt-1">SIRET : {client.siret}</p>}
+                {client.email && <p className="text-sm text-gray-500 mt-1">{client.email}</p>}
+                {client.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
+                {client.siret && <p className="text-xs text-gray-400 mt-1">SIRET : {client.siret}</p>}
               </div>
-            ) : <div />}
+            )}
           </div>
 
           {/* ── SUBJECT ── */}
           {invoice.subject && (
-            <div className="px-10 pb-5">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 rounded-lg">
-                <span className="text-xs font-bold text-indigo-200 uppercase tracking-wider">Objet</span>
-                <span className="text-sm text-white font-semibold">{invoice.subject}</span>
-              </div>
+            <div className="px-10 pb-7">
+              <span className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg px-4 py-2.5">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Objet :</span>
+                {invoice.subject}
+              </span>
             </div>
           )}
 
-          {/* ── ITEMS TABLE ── */}
-          <div className="mx-10 mb-6 rounded-xl overflow-hidden border border-gray-200">
-            <table className="w-full">
+          {/* ══════════════════════════════════════
+              ITEMS TABLE
+          ══════════════════════════════════════ */}
+          <div className="px-10 pb-8">
+            <table className="w-full rounded-xl overflow-hidden">
               <thead>
-                <tr className="bg-slate-700">
-                  <th className="text-left px-5 py-3.5 text-xs font-bold text-slate-300 uppercase tracking-wider">Description</th>
-                  <th className="text-center px-4 py-3.5 text-xs font-bold text-slate-300 uppercase tracking-wider hidden sm:table-cell w-16">Qté</th>
-                  <th className="text-right px-4 py-3.5 text-xs font-bold text-slate-300 uppercase tracking-wider hidden sm:table-cell w-28">P.U. HT</th>
-                  <th className="text-center px-4 py-3.5 text-xs font-bold text-slate-300 uppercase tracking-wider hidden md:table-cell w-16">TVA</th>
-                  <th className="text-right px-5 py-3.5 text-xs font-bold text-slate-300 uppercase tracking-wider w-28">Total HT</th>
+                <tr className="bg-slate-900">
+                  <th className="text-left px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Description</th>
+                  <th className="text-center px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-16">Qté</th>
+                  <th className="text-right px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-28">P.U. HT</th>
+                  <th className="text-center px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-16">TVA</th>
+                  <th className="text-right px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-28">Total HT</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {items.map((item: any, idx: number) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
+                  <tr
+                    key={idx}
+                    className={`border-b border-gray-100 last:border-0 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}`}
+                  >
                     <td className="px-5 py-4">
-                      <p className="text-sm font-medium text-gray-900 leading-snug">{item.description}</p>
-                      <p className="text-xs text-gray-400 sm:hidden mt-0.5">{item.quantity} × {formatCurrency(item.unit_price)}</p>
+                      <p className="text-sm font-semibold text-gray-900 leading-snug">{item.description}</p>
                     </td>
-                    <td className="px-4 py-4 text-center hidden sm:table-cell">
+                    <td className="px-4 py-4 text-center">
                       <span className="text-sm text-gray-700">{item.quantity}</span>
                       {item.unit && <span className="text-xs text-gray-400 ml-1">{item.unit}</span>}
                     </td>
-                    <td className="px-4 py-4 text-right text-sm text-gray-700 hidden sm:table-cell">{formatCurrency(item.unit_price)}</td>
-                    <td className="px-4 py-4 text-center hidden md:table-cell">
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{item.vat_rate}%</span>
+                    <td className="px-4 py-4 text-right text-sm text-gray-600">{formatCurrency(item.unit_price)}</td>
+                    <td className="px-4 py-4 text-center">
+                      <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                        {item.vat_rate}%
+                      </span>
                     </td>
                     <td className="px-5 py-4 text-right text-sm font-bold text-gray-900">{formatCurrency(item.total)}</td>
                   </tr>
@@ -255,68 +286,80 @@ export default function InvoiceDetailPage() {
             </table>
           </div>
 
-          {/* ── TOTALS ── */}
-          <div className="px-10 pb-8 flex justify-end">
-            <div className="w-72 space-y-2">
-              <div className="flex justify-between items-center py-1.5">
-                <span className="text-sm text-gray-500">Sous-total HT</span>
-                <span className="text-sm font-semibold text-gray-800">{formatCurrency(invoice.subtotal)}</span>
-              </div>
-              {invoice.discount_amount > 0 && (
-                <div className="flex justify-between items-center py-1.5">
-                  <span className="text-sm text-gray-500">Remise</span>
-                  <span className="text-sm font-semibold text-red-600">- {formatCurrency(invoice.discount_amount)}</span>
+          {/* ══════════════════════════════════════
+              TOTALS
+          ══════════════════════════════════════ */}
+          <div className="px-10 pb-10 flex justify-end">
+            <div className="w-80">
+              <div className="space-y-3 pb-4 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Sous-total HT</span>
+                  <span className="text-sm font-semibold text-gray-800">{formatCurrency(invoice.subtotal)}</span>
                 </div>
-              )}
-              {Object.entries(taxByRate).map(([rate, amount]) => (
-                <div key={rate} className="flex justify-between items-center py-1.5">
-                  <span className="text-sm text-gray-500">TVA {rate}%</span>
-                  <span className="text-sm font-semibold text-gray-800">{formatCurrency(amount as number)}</span>
-                </div>
-              ))}
-              <div className="pt-2">
-                <div className={`flex justify-between items-center px-5 py-4 rounded-xl ${isPaid ? 'bg-green-600' : 'bg-indigo-600'}`}>
-                  <div>
-                    <p className={`text-xs font-bold uppercase tracking-wider ${isPaid ? 'text-green-200' : 'text-indigo-200'}`}>Total TTC</p>
-                    {isPaid && <p className="text-xs text-green-200 font-medium mt-0.5">✓ Payée</p>}
+                {invoice.discount_amount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">
+                      Remise{(invoice as any).discount_percent > 0 ? ` (${(invoice as any).discount_percent}%)` : ''}
+                    </span>
+                    <span className="text-sm font-semibold text-red-500">− {formatCurrency(invoice.discount_amount)}</span>
                   </div>
-                  <span className="text-2xl font-black text-white">{formatCurrency(invoice.total)}</span>
+                )}
+                {Object.entries(taxByRate).map(([rate, amount]) => (
+                  <div key={rate} className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">TVA {rate}%</span>
+                    <span className="text-sm font-semibold text-gray-800">{formatCurrency(amount as number)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* TOTAL BOX */}
+              <div className={`mt-4 flex justify-between items-center rounded-xl px-6 py-5 ${isPaid ? 'bg-green-600' : 'bg-slate-900'}`}>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Total TTC</p>
+                  {isPaid && <p className="text-xs text-green-300 font-semibold mt-0.5">✓ Payée</p>}
                 </div>
+                <p className="text-3xl font-black text-white tracking-tight">{formatCurrency(invoice.total)}</p>
               </div>
             </div>
           </div>
 
-          {/* ── NOTES & BANQUE ── */}
+          {/* ── NOTES & BANKING ── */}
           {(invoice.notes || invoice.payment_terms || profile?.bank_iban) && (
-            <div className="mx-10 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="mx-10 mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {invoice.notes && (
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-5">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Notes</p>
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-5">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.25em] mb-2">Notes</p>
                   <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{invoice.notes}</p>
                 </div>
               )}
               {(profile?.bank_iban || invoice.payment_terms) && (
-                <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-5">
-                  <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">Coordonnées bancaires</p>
+                <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-5">
+                  <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-2">Coordonnées bancaires</p>
                   {profile?.bank_name && <p className="text-sm font-semibold text-gray-800">{profile.bank_name}</p>}
-                  {profile?.bank_iban && <p className="text-sm text-gray-700 font-mono mt-1 text-xs">IBAN : {profile.bank_iban}</p>}
-                  {profile?.bank_bic && <p className="text-sm text-gray-700 font-mono text-xs">BIC : {profile.bank_bic}</p>}
+                  {profile?.bank_iban && <p className="text-xs text-gray-600 font-mono mt-1">IBAN : {profile.bank_iban}</p>}
+                  {profile?.bank_bic && <p className="text-xs text-gray-600 font-mono">BIC : {profile.bank_bic}</p>}
                   {invoice.payment_terms && <p className="text-xs text-gray-500 mt-2 italic">{invoice.payment_terms}</p>}
                 </div>
               )}
             </div>
           )}
 
-          {/* ── FOOTER ── */}
-          <div className="h-1.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-400" />
-          {profile?.footer_text && (
-            <div className="px-10 py-3 bg-indigo-600 text-center">
-              <p className="text-xs text-indigo-200">{profile.footer_text}</p>
-            </div>
-          )}
+          {/* ══════════════════════════════════════
+              DARK FOOTER
+          ══════════════════════════════════════ */}
+          <div className="bg-slate-900 px-10 py-5 flex items-center justify-between gap-4">
+            <p className="text-slate-500 text-xs font-medium">{profile?.company_name || 'Mon Entreprise'}</p>
+            {profile?.footer_text && (
+              <p className="text-slate-500 text-xs text-center flex-1">{profile.footer_text}</p>
+            )}
+            {profile?.siret && (
+              <p className="text-slate-600 text-xs whitespace-nowrap">SIRET : {profile.siret}</p>
+            )}
+          </div>
+
         </div>
 
-        {/* Actions (no print) */}
+        {/* ── BOTTOM ACTIONS (no print) ── */}
         <div className="no-print max-w-4xl mx-auto mt-4 flex flex-wrap gap-3">
           {invoice.status === 'draft' && (
             <button onClick={() => updateStatus('sent')}
