@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -33,6 +34,22 @@ const bottomNavigation = [
 export default function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [companyName, setCompanyName] = useState<string>('Factures TPE')
+
+  useEffect(() => {
+    const supabase = createClient()
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('profiles')
+        .select('company_name')
+        .eq('id', user.id)
+        .single()
+      if (data?.company_name) setCompanyName(data.company_name)
+    }
+    loadProfile()
+  }, [])
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
@@ -41,7 +58,7 @@ export default function Sidebar() {
         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
           <DocumentCurrencyEuroIcon className="w-5 h-5 text-white" />
         </div>
-        <span className="text-lg font-bold text-gray-900">FacturePro</span>
+        <span className="text-lg font-bold text-gray-900 truncate">{companyName}</span>
       </div>
 
       {/* Navigation */}
@@ -89,7 +106,7 @@ export default function Sidebar() {
           )
         })}
         <div className="px-3 pt-2">
-          <p className="text-xs text-gray-400">FacturePro v1.0</p>
+          <p className="text-xs text-gray-400">Factures TPE v1.0</p>
         </div>
       </div>
     </div>
