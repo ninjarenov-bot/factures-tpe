@@ -1,0 +1,43 @@
+# Factures TPE
+
+> Logiciel de facturation gratuit pour artisans et TPE françaises
+
+Factures TPE est une application web de facturation en ligne destinée aux artisans, petits entrepreneurs, auto-entrepreneurs et TPE en France. Elle permet de créer des devis et factures professionnels en moins de 2 minutes, depuis un ordinateur ou un smartphone.
+
+## Fonctionnalités principales
+
+- **Factures conformes** : Génération de factures PDF respectant la réglementation française 2025 (mentions légales, TVA, numérotation automatique)
+- **Devis professionnels** : Création rapide de devis avec conversion en facture en un clic
+- **Gestion des clients** : Annuaire clients avec historique des factures et devis
+- **Catalogue produits** : Bibliothèque de produits et services réutilisables
+- **Tableau de bord** : Suivi du chiffre d'affaires, impayés et statistiques
+- **Envoi par email** : Transmission directe des factures et devis aux clients
+- **100% mobile** : Interface responsive, utilisable depuis un smartphone sur chantier
+
+## Cibles utilisateurs
+
+- Artisans du bâtiment (plombiers, électriciens, peintres, maçons, menuisiers, carreleurs, couvreurs)
+- Auto-entrepreneurs et micro-entrepreneurs
+- TPE (Très Petites Entreprises) françaises
+- Artisans de services (coiffeurs, esthéticiennes, jardiniers, etc.)
+
+## Tarifs
+
+- **Gratuit** : 5 factures/mois, 3 devis/mois, 10 clients — 0€/mois
+- **Pro** : Factures et devis illimités, envoi email, logo personnalisé — 9€/mois HT
+- **Équipe** : Jusqu'à 5 utilisateurs, export comptable — 19€/mois HT
+
+## Conformité
+
+Toutes les factures générées sont conformes à la réglementation française : mentions légales obligatoires, numérotation chronologique, TVA (avec ou sans), et aux obligations 2025.
+
+## Informations techniques
+
+- Application web (SaaS), accessible sur https://www.factures-tpe.fr
+- Données hébergées en Europe (sécurité RGPD)
+- Compatible : Desktop, tablette, smartphone (iOS et Android)
+- Langue : Français
+
+## Contact
+
+Site web : https://www.factures-tpe.fr
