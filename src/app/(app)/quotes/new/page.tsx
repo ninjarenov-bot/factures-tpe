@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import DocumentForm from '@/components/DocumentForm'
 
-export default function NewQuotePage() {
+function NewQuoteContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
   const [initialData, setInitialData] = useState<any>(undefined)
@@ -55,4 +55,16 @@ export default function NewQuotePage() {
   )
 
   return <DocumentForm type="quote" initialData={initialData} />
+}
+
+export default function NewQuotePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <NewQuoteContent />
+    </Suspense>
+  )
 }

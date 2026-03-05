@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import DocumentForm from '@/components/DocumentForm'
 
-export default function NewInvoicePage() {
+function NewInvoiceContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
   const [initialData, setInitialData] = useState<any>(undefined)
@@ -55,4 +55,16 @@ export default function NewInvoicePage() {
   )
 
   return <DocumentForm type="invoice" initialData={initialData} />
+}
+
+export default function NewInvoicePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <NewInvoiceContent />
+    </Suspense>
+  )
 }
