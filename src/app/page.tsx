@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase'
 import {
   DocumentTextIcon,
   ClipboardDocumentListIcon,
@@ -224,6 +226,15 @@ const jsonLd = {
 }
 
 export default function LandingPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setIsLoggedIn(true)
+    })
+  }, [])
+
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* JSON-LD Structured Data */}
@@ -247,12 +258,20 @@ export default function LandingPage() {
             <a href="#testimonials" className="hover:text-gray-900 transition-colors">Avis</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <Link href="/auth" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block">
-              Connexion
-            </Link>
-            <Link href="/auth" className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 whitespace-nowrap">
-              Commencer <ArrowRightIcon className="w-3.5 h-3.5" />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 whitespace-nowrap">
+                Mon espace <ArrowRightIcon className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block">
+                  Connexion
+                </Link>
+                <Link href="/auth" className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 whitespace-nowrap">
+                  Commencer <ArrowRightIcon className="w-3.5 h-3.5" />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -281,16 +300,25 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link href="/auth" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm sm:text-base">
-              Essayer gratuitement
-              <ArrowRightIcon className="w-4 h-4" />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm sm:text-base">
+                Accéder à mon espace
+                <ArrowRightIcon className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link href="/auth" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm sm:text-base">
+                Essayer gratuitement
+                <ArrowRightIcon className="w-4 h-4" />
+              </Link>
+            )}
             <a href="#features" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 border border-gray-200 transition-all text-sm sm:text-base">
               Voir les fonctionnalités
             </a>
           </div>
 
-          <p className="text-xs sm:text-sm text-gray-400 mt-4 sm:mt-5">Gratuit pour commencer · Sans carte bancaire · Résiliable à tout moment</p>
+          {!isLoggedIn && (
+            <p className="text-xs sm:text-sm text-gray-400 mt-4 sm:mt-5">Gratuit pour commencer · Sans carte bancaire · Résiliable à tout moment</p>
+          )}
 
           {/* Stats */}
           <div className="mt-12 sm:mt-16 grid grid-cols-3 gap-4 sm:gap-6 max-w-sm sm:max-w-xl mx-auto">

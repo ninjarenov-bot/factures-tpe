@@ -62,12 +62,13 @@ export default function InvoiceDetailPage() {
   if (!invoice) return <div className="p-6 text-center text-gray-500">Facture introuvable</div>
 
   const items = (invoice as any).items || []
+  const hasDiscount = items.some((i: any) => i.discount_percent > 0)
 
   // TVA détail par taux
   const taxByRate: Record<number, { ht: number; tva: number; ttc: number }> = {}
   items.forEach((item: any) => {
     const ht = item.total
-    const tva = ht * item.vat_rate / 100
+    const tva = parseFloat((ht * item.vat_rate / 100).toFixed(2))
     const ttc = ht + tva
     if (!taxByRate[item.vat_rate]) taxByRate[item.vat_rate] = { ht: 0, tva: 0, ttc: 0 }
     taxByRate[item.vat_rate].ht += ht
@@ -95,7 +96,7 @@ export default function InvoiceDetailPage() {
   return (
     <div className="flex flex-col min-h-screen">
 
-      {/* ── TOOLBAR ── */}
+      {/* TOOLBAR */}
       <div className="no-print">
         <Header
           title={`Facture ${invoice.number}`}
@@ -129,162 +130,170 @@ export default function InvoiceDetailPage() {
         />
       </div>
 
-      <main className="flex-1 p-4 sm:p-8 bg-gray-100">
-        <div id="invoice-doc" className="bg-white max-w-4xl mx-auto shadow-xl relative" style={{ fontFamily: 'Arial, sans-serif' }}>
+      <main className="flex-1 p-4 sm:p-10 bg-gray-200">
+        <div id="invoice-doc" className="bg-white max-w-[210mm] mx-auto shadow-2xl relative overflow-hidden"
+          style={{ fontFamily: "'Arial', 'Helvetica', sans-serif", fontSize: '13px', lineHeight: '1.5' }}>
 
           {/* WATERMARK */}
           {isPaid && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 opacity-[0.05] select-none">
-              <span className="text-green-600 font-black text-[130px] rotate-[-28deg] tracking-widest">PAYÉE</span>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 select-none"
+              style={{ opacity: 0.04 }}>
+              <span style={{ fontSize: '140px', fontWeight: 900, color: '#16a34a', transform: 'rotate(-30deg)', letterSpacing: '0.1em' }}>PAYÉE</span>
             </div>
           )}
 
-          {/* ══ HEADER ══ */}
-          <div className="bg-slate-900 px-8 pt-8 pb-7">
-            <div className="flex items-start justify-between gap-8">
+          {/* ══════════ HEADER SOMBRE ══════════ */}
+          <div style={{ background: '#0f172a', padding: '32px 40px 28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '32px' }}>
 
-              {/* Gauche — Vendeur */}
-              <div className="flex items-start gap-4 flex-1 min-w-0">
+              {/* Logo + Société */}
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flex: 1 }}>
                 {profile?.logo_url ? (
                   <img src={profile.logo_url} alt="Logo"
-                    className="w-14 h-14 object-contain flex-shrink-0 ring-1 ring-white/10" />
+                    style={{ width: '56px', height: '56px', objectFit: 'contain', border: '1px solid rgba(255,255,255,0.1)' }} />
                 ) : (
-                  <div className="w-14 h-14 bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-black text-2xl">
+                  <div style={{ width: '56px', height: '56px', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ color: 'white', fontWeight: 900, fontSize: '22px' }}>
                       {(profile?.company_name || 'M').charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.25em] mb-1">Vendeur</p>
-                  <p className="text-white font-bold text-base leading-tight">{profile?.company_name || 'Mon Entreprise'}</p>
-                  <div className="mt-1.5 space-y-0.5">
-                    {profile?.address && <p className="text-slate-400 text-xs">{profile.address}</p>}
-                    {(profile?.postal_code || profile?.city) && (
-                      <p className="text-slate-400 text-xs">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
-                    )}
-                    {profile?.phone && <p className="text-slate-400 text-xs">{profile.phone}</p>}
-                    {profile?.email && <p className="text-slate-400 text-xs">{profile.email}</p>}
-                    {profile?.siret && <p className="text-slate-500 text-xs mt-1">SIRET : {profile.siret}</p>}
-                    {profile?.vat_number && <p className="text-slate-500 text-xs">N° TVA : {profile.vat_number}</p>}
-                  </div>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4px' }}>Vendeur</div>
+                  <div style={{ color: 'white', fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>{profile?.company_name || 'Mon Entreprise'}</div>
+                  {profile?.address && <div style={{ color: '#94a3b8', fontSize: '11px' }}>{profile.address}</div>}
+                  {(profile?.postal_code || profile?.city) && (
+                    <div style={{ color: '#94a3b8', fontSize: '11px' }}>{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</div>
+                  )}
+                  {profile?.phone && <div style={{ color: '#94a3b8', fontSize: '11px', marginTop: '4px' }}>{profile.phone}</div>}
+                  {profile?.email && <div style={{ color: '#94a3b8', fontSize: '11px' }}>{profile.email}</div>}
+                  {profile?.siret && <div style={{ color: '#64748b', fontSize: '10px', marginTop: '6px' }}>SIRET : {profile.siret}</div>}
+                  {profile?.vat_number && <div style={{ color: '#64748b', fontSize: '10px' }}>N° TVA : {profile.vat_number}</div>}
                 </div>
               </div>
 
-              {/* Droite — Identité facture */}
-              <div className="text-right flex-shrink-0">
-                <p className="text-indigo-400 font-black text-[10px] uppercase tracking-[0.35em] mb-1">Facture</p>
-                <p className="text-white font-black text-4xl leading-none">{invoice.number}</p>
-                <div className="mt-4 space-y-1.5 pt-3 border-t border-slate-700">
-                  <div className="flex items-center justify-end gap-6">
-                    <span className="text-slate-500 text-xs">Date de facture</span>
-                    <span className="text-slate-200 text-xs font-semibold w-24 text-right">{formatDate(invoice.issue_date)}</span>
-                  </div>
-                  {invoice.due_date && (
-                    <div className="flex items-center justify-end gap-6">
-                      <span className="text-slate-500 text-xs">Date de paiement</span>
-                      <span className={`text-xs font-semibold w-24 text-right ${invoice.status === 'overdue' ? 'text-red-400' : 'text-slate-200'}`}>
-                        {formatDate(invoice.due_date)}
-                      </span>
+              {/* Numéro + Dates */}
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ color: '#818cf8', fontSize: '10px', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>FACTURE</div>
+                <div style={{ color: 'white', fontWeight: 900, fontSize: '36px', lineHeight: 1, marginTop: '4px', letterSpacing: '-1px' }}>{invoice.number}</div>
+                <div style={{ marginTop: '16px', borderTop: '1px solid #1e293b', paddingTop: '12px' }}>
+                  {[
+                    { label: 'Date de facture', value: formatDate(invoice.issue_date) },
+                    invoice.due_date ? { label: 'Date de paiement', value: formatDate(invoice.due_date), red: invoice.status === 'overdue' } : null,
+                    (invoice as any).paid_at ? { label: 'Payée le', value: formatDate((invoice as any).paid_at), green: true } : null,
+                  ].filter(Boolean).map((row: any, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'flex-end', gap: '24px', marginBottom: '4px' }}>
+                      <span style={{ color: '#64748b', fontSize: '11px' }}>{row.label}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: row.green ? '#4ade80' : row.red ? '#f87171' : '#cbd5e1', minWidth: '80px', textAlign: 'right' }}>{row.value}</span>
                     </div>
-                  )}
-                  {(invoice as any).paid_at && (
-                    <div className="flex items-center justify-end gap-6">
-                      <span className="text-slate-500 text-xs">Payée le</span>
-                      <span className="text-green-400 text-xs font-semibold w-24 text-right">{formatDate((invoice as any).paid_at)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-3">
-                  <InvoiceStatusBadge status={invoice.status} />
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Ligne accent */}
-          <div className="h-1 bg-indigo-600" />
+          {/* Barre accent indigo */}
+          <div style={{ height: '4px', background: 'linear-gradient(to right, #4f46e5, #6366f1, #818cf8)' }} />
 
-          {/* ══ ADRESSES ══ */}
-          <div className="px-8 py-6 grid grid-cols-2 gap-8 border-b border-gray-200">
+          {/* ══════════ ADRESSES ══════════ */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', borderBottom: '1px solid #e2e8f0' }}>
             {/* Vendeur */}
-            <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-2">Vendeur :</p>
-              <p className="font-bold text-gray-900 text-sm">{profile?.company_name || 'Mon Entreprise'}</p>
-              {profile?.address && <p className="text-sm text-gray-600 mt-0.5">{profile.address}</p>}
-              {(profile?.postal_code || profile?.city) && (
-                <p className="text-sm text-gray-600">{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</p>
-              )}
-              {profile?.email && <p className="text-sm text-gray-600 mt-1">{profile.email}</p>}
-              {profile?.phone && <p className="text-sm text-gray-600">{profile.phone}</p>}
-              {profile?.siret && <p className="text-xs text-gray-400 mt-1">SIRET : {profile.siret}</p>}
-              {profile?.vat_number && <p className="text-xs text-gray-400">N° TVA : {profile.vat_number}</p>}
+            <div style={{ padding: '20px 24px 20px 40px', borderRight: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Vendeur :</div>
+              <div style={{ fontWeight: 700, color: '#111827', fontSize: '13px' }}>{profile?.company_name || 'Mon Entreprise'}</div>
+              {profile?.address && <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{profile.address}</div>}
+              {(profile?.postal_code || profile?.city) && <div style={{ color: '#6b7280', fontSize: '12px' }}>{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</div>}
+              {profile?.email && <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>{profile.email}</div>}
+              {profile?.phone && <div style={{ color: '#6b7280', fontSize: '12px' }}>{profile.phone}</div>}
             </div>
-
             {/* Client */}
-            {client && (
-              <div className="pl-6 border-l-2 border-indigo-600">
-                <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-[0.25em] mb-2">Client :</p>
-                <p className="font-bold text-gray-900 text-sm">{getClientName(client)}</p>
-                {client.address && <p className="text-sm text-gray-600 mt-0.5">{client.address}</p>}
-                {(client.postal_code || client.city) && (
-                  <p className="text-sm text-gray-600">{[client.postal_code, client.city].filter(Boolean).join(' ')}</p>
-                )}
-                {client.email && <p className="text-sm text-gray-600 mt-1">{client.email}</p>}
-                {client.phone && <p className="text-sm text-gray-600">{client.phone}</p>}
-                {client.siret && <p className="text-xs text-gray-400 mt-1">SIRET : {client.siret}</p>}
-              </div>
-            )}
+            <div style={{ padding: '20px 40px 20px 24px', borderLeft: '3px solid #4f46e5' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#4f46e5', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Client :</div>
+              {client ? (
+                <>
+                  <div style={{ fontWeight: 700, color: '#111827', fontSize: '13px' }}>{getClientName(client)}</div>
+                  {client.address && <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{client.address}</div>}
+                  {(client.postal_code || client.city) && <div style={{ color: '#6b7280', fontSize: '12px' }}>{[client.postal_code, client.city].filter(Boolean).join(' ')}</div>}
+                  {client.email && <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>{client.email}</div>}
+                  {client.phone && <div style={{ color: '#6b7280', fontSize: '12px' }}>{client.phone}</div>}
+                  {client.siret && <div style={{ color: '#9ca3af', fontSize: '11px', marginTop: '4px' }}>SIRET : {client.siret}</div>}
+                </>
+              ) : (
+                <div style={{ color: '#9ca3af', fontSize: '12px', fontStyle: 'italic' }}>Aucun client sélectionné</div>
+              )}
+            </div>
           </div>
 
           {/* Objet */}
           {invoice.subject && (
-            <div className="px-8 py-4 border-b border-gray-200 bg-gray-50">
-              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Objet : </span>
-              <span className="text-sm text-gray-800">{invoice.subject}</span>
+            <div style={{ padding: '10px 40px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Objet : </span>
+              <span style={{ fontSize: '13px', color: '#1e293b' }}>{invoice.subject}</span>
             </div>
           )}
 
-          {/* ══ TABLEAU ARTICLES ══ */}
-          <div className="px-8 py-6">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-3">Détail de la facture :</p>
-            <table className="w-full text-sm border-collapse">
+          {/* ══════════ TABLEAU ARTICLES ══════════ */}
+          <div style={{ padding: '24px 40px 0' }}>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              Détail facture :
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
-                <tr className="bg-slate-900 text-slate-300">
-                  <th className="text-left px-4 py-3 text-[10px] font-bold uppercase tracking-wider">Désignation</th>
-                  <th className="text-center px-3 py-3 text-[10px] font-bold uppercase tracking-wider w-16">Qté</th>
-                  <th className="text-right px-3 py-3 text-[10px] font-bold uppercase tracking-wider w-24">P.U. HT</th>
-                  {items.some((i: any) => i.discount_percent > 0) && (
-                    <th className="text-center px-3 py-3 text-[10px] font-bold uppercase tracking-wider w-16">Remise</th>
+                <tr style={{ background: '#0f172a' }}>
+                  <th style={{ textAlign: 'left', padding: '10px 12px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b' }}>
+                    Désignation
+                  </th>
+                  <th style={{ textAlign: 'center', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '60px' }}>
+                    Qté
+                  </th>
+                  <th style={{ textAlign: 'right', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '90px' }}>
+                    P.U. HT
+                  </th>
+                  {hasDiscount && (
+                    <th style={{ textAlign: 'center', padding: '10px 8px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '60px' }}>
+                      Remise
+                    </th>
                   )}
-                  <th className="text-center px-3 py-3 text-[10px] font-bold uppercase tracking-wider w-16">TVA</th>
-                  <th className="text-right px-3 py-3 text-[10px] font-bold uppercase tracking-wider w-24">Total HT</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-bold uppercase tracking-wider w-28">Total TTC</th>
+                  <th style={{ textAlign: 'center', padding: '10px 8px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '55px' }}>
+                    TVA
+                  </th>
+                  <th style={{ textAlign: 'right', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '90px' }}>
+                    Total HT
+                  </th>
+                  <th style={{ textAlign: 'right', padding: '10px 12px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '100px' }}>
+                    Total TTC
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item: any, idx: number) => {
                   const totalTTC = item.total * (1 + item.vat_rate / 100)
-                  const hasDiscount = items.some((i: any) => i.discount_percent > 0)
+                  const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc'
                   return (
-                    <tr key={idx} className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-gray-900">{item.description}</p>
+                    <tr key={idx} style={{ background: rowBg }}>
+                      <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', color: '#111827', fontWeight: 600, verticalAlign: 'top' }}>
+                        {item.description}
                       </td>
-                      <td className="px-3 py-3 text-center text-gray-700">
-                        {item.quantity}{item.unit ? <span className="text-gray-400 text-xs ml-1">{item.unit}</span> : ''}
+                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#374151' }}>
+                        {item.quantity}{item.unit && <span style={{ color: '#9ca3af', fontSize: '10px' }}> {item.unit}</span>}
                       </td>
-                      <td className="px-3 py-3 text-right text-gray-600">{formatCurrency(item.unit_price)}</td>
+                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>
+                        {formatCurrency(item.unit_price)}
+                      </td>
                       {hasDiscount && (
-                        <td className="px-3 py-3 text-center text-gray-500 text-xs">
+                        <td style={{ padding: '10px 8px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#6b7280' }}>
                           {item.discount_percent > 0 ? `${item.discount_percent}%` : '—'}
                         </td>
                       )}
-                      <td className="px-3 py-3 text-center">
-                        <span className="text-xs font-semibold text-indigo-700">{item.vat_rate}%</span>
+                      <td style={{ padding: '10px 8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        <span style={{ color: '#4338ca', fontWeight: 700, fontSize: '11px' }}>{item.vat_rate}%</span>
                       </td>
-                      <td className="px-3 py-3 text-right text-gray-700 font-medium">{formatCurrency(item.total)}</td>
-                      <td className="px-4 py-3 text-right font-bold text-gray-900">{formatCurrency(totalTTC)}</td>
+                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151', fontWeight: 600 }}>
+                        {formatCurrency(item.total)}
+                      </td>
+                      <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#111827', fontWeight: 700 }}>
+                        {formatCurrency(totalTTC)}
+                      </td>
                     </tr>
                   )
                 })}
@@ -292,103 +301,108 @@ export default function InvoiceDetailPage() {
             </table>
           </div>
 
-          {/* ══ TVA + TOTAUX ══ */}
-          <div className="px-8 pb-8 grid grid-cols-2 gap-8 items-start">
+          {/* ══════════ DETAIL TVA + TOTAUX ══════════ */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', padding: '20px 40px 24px', alignItems: 'start' }}>
 
-            {/* Gauche — Détail TVA */}
+            {/* Tableau TVA */}
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-3">Détail TVA :</p>
-              <table className="w-full text-xs border border-gray-200">
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Détail TVA :
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-200">
-                    <th className="text-center px-3 py-2 font-bold text-gray-600">Taux TVA</th>
-                    <th className="text-right px-3 py-2 font-bold text-gray-600">Montant HT</th>
-                    <th className="text-right px-3 py-2 font-bold text-gray-600">Montant TVA</th>
-                    <th className="text-right px-3 py-2 font-bold text-gray-600">Montant TTC</th>
+                  <tr style={{ background: '#f1f5f9' }}>
+                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Taux TVA</th>
+                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant HT</th>
+                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant TVA</th>
+                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant TTC</th>
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(taxByRate).map(([rate, vals]) => (
-                    <tr key={rate} className="border-b border-gray-100">
-                      <td className="text-center px-3 py-2 text-indigo-700 font-bold">{rate}%</td>
-                      <td className="text-right px-3 py-2 text-gray-700">{formatCurrency(vals.ht)}</td>
-                      <td className="text-right px-3 py-2 text-gray-700">{formatCurrency(vals.tva)}</td>
-                      <td className="text-right px-3 py-2 text-gray-900 font-semibold">{formatCurrency(vals.ttc)}</td>
+                    <tr key={rate} style={{ background: 'white' }}>
+                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#4338ca', fontWeight: 700 }}>{rate} %</td>
+                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>{formatCurrency(vals.ht)}</td>
+                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>{formatCurrency(vals.tva)}</td>
+                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#111827', fontWeight: 700 }}>{formatCurrency(vals.ttc)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Droite — Résumé totaux */}
+            {/* Totaux */}
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-3">Montant de la facture :</p>
-              <div className="border border-gray-200">
-                <div className="flex justify-between px-4 py-2.5 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Total montant HT</span>
-                  <span className="text-sm font-semibold text-gray-800">{formatCurrency(invoice.subtotal)}</span>
-                </div>
-                {invoice.discount_amount > 0 && (
-                  <div className="flex justify-between px-4 py-2.5 border-b border-gray-100">
-                    <span className="text-sm text-gray-600">
-                      Remise{(invoice as any).discount_percent > 0 ? ` (${(invoice as any).discount_percent}%)` : ''}
-                    </span>
-                    <span className="text-sm font-semibold text-red-500">− {formatCurrency(invoice.discount_amount)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between px-4 py-2.5 border-b border-gray-100">
-                  <span className="text-sm text-gray-600">Total montant TVA</span>
-                  <span className="text-sm font-semibold text-gray-800">{formatCurrency(invoice.tax_amount)}</span>
-                </div>
-                <div className={`flex justify-between px-4 py-3 ${isPaid ? 'bg-green-600' : 'bg-slate-900'}`}>
-                  <span className="text-sm font-black text-white uppercase tracking-wide">Total TTC</span>
-                  <span className="text-lg font-black text-white">{formatCurrency(invoice.total)}</span>
-                </div>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Montant de la facture :
               </div>
-              {isPaid && (
-                <p className="text-xs text-green-600 font-semibold mt-2 text-right">✓ Facture payée</p>
-              )}
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>Total montant HT</td>
+                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(invoice.subtotal)}</td>
+                  </tr>
+                  {invoice.discount_amount > 0 && (
+                    <tr>
+                      <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>
+                        Remise{(invoice as any).discount_percent > 0 ? ` (${(invoice as any).discount_percent}%)` : ''}
+                      </td>
+                      <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#dc2626' }}>− {formatCurrency(invoice.discount_amount)}</td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>Total montant TVA</td>
+                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(invoice.tax_amount)}</td>
+                  </tr>
+                  <tr style={{ background: isPaid ? '#16a34a' : '#0f172a' }}>
+                    <td style={{ padding: '12px 12px', border: '1px solid #0f172a', color: 'white', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {isPaid ? '✓ Facture payée' : 'Total TTC'}
+                    </td>
+                    <td style={{ padding: '12px 12px', border: '1px solid #0f172a', textAlign: 'right', color: 'white', fontWeight: 900, fontSize: '20px' }}>
+                      {formatCurrency(invoice.total)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
-          {/* ══ PAIEMENT & NOTES ══ */}
-          {(invoice.notes || invoice.payment_terms || profile?.bank_iban) && (
-            <div className="px-8 pb-8 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-200 pt-6">
+          {/* ══════════ PAIEMENT & NOTES ══════════ */}
+          {(profile?.bank_iban || invoice.payment_terms || invoice.notes) && (
+            <div style={{ display: 'grid', gridTemplateColumns: profile?.bank_iban || invoice.payment_terms ? '1fr 1fr' : '1fr', gap: '0', borderTop: '1px solid #e2e8f0', margin: '0 40px 24px' }}>
               {(profile?.bank_iban || invoice.payment_terms) && (
-                <div className="border border-gray-200 p-4">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-2">Détail paiement :</p>
-                  {invoice.payment_terms && (
-                    <p className="text-xs text-gray-600 mb-2">{invoice.payment_terms}</p>
-                  )}
-                  {profile?.bank_name && <p className="text-sm font-semibold text-gray-800">{profile.bank_name}</p>}
-                  {profile?.bank_iban && <p className="text-xs text-gray-600 font-mono mt-1">IBAN : {profile.bank_iban}</p>}
-                  {profile?.bank_bic && <p className="text-xs text-gray-600 font-mono">BIC : {profile.bank_bic}</p>}
+                <div style={{ padding: '16px', border: '1px solid #e2e8f0', background: '#f8fafc', marginRight: invoice.notes ? '12px' : 0 }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Détail paiement :</div>
+                  {invoice.payment_terms && <div style={{ fontSize: '11px', color: '#374151', marginBottom: '6px', fontStyle: 'italic' }}>{invoice.payment_terms}</div>}
+                  {profile?.bank_name && <div style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>{profile.bank_name}</div>}
+                  {profile?.bank_iban && <div style={{ fontSize: '11px', color: '#374151', fontFamily: 'monospace', marginTop: '4px' }}>IBAN : {profile.bank_iban}</div>}
+                  {profile?.bank_bic && <div style={{ fontSize: '11px', color: '#374151', fontFamily: 'monospace' }}>BIC : {profile.bank_bic}</div>}
                 </div>
               )}
               {invoice.notes && (
-                <div className="border border-gray-200 p-4">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-2">Notes :</p>
-                  <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">{invoice.notes}</p>
+                <div style={{ padding: '16px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Notes :</div>
+                  <div style={{ fontSize: '11px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{invoice.notes}</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* Mention légale paiement */}
-          <div className="px-8 pb-5 border-t border-gray-100">
-            <p className="text-[10px] text-gray-400 leading-relaxed mt-4">
-              Paiement comptant, pas d'escompte pour règlement anticipé. En cas de retard de paiement, des pénalités de retard au taux légal en vigueur seront appliquées, ainsi qu'une indemnité forfaitaire de recouvrement de 40€.
-            </p>
+          {/* Mentions légales */}
+          <div style={{ padding: '0 40px 20px' }}>
+            <div style={{ fontSize: '9px', color: '#9ca3af', lineHeight: '1.6', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+              Paiement comptant, pas d'escompte pour règlement anticipé. En cas de retard de paiement, des pénalités de retard au taux légal majoré de 5 points seront appliquées de plein droit, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement (art. L441-10 du Code de commerce).
+            </div>
           </div>
 
-          {/* ══ FOOTER ══ */}
-          <div className="bg-slate-900 px-8 py-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <p className="text-slate-400 text-xs font-semibold">{profile?.company_name || 'Mon Entreprise'}</p>
+          {/* ══════════ FOOTER ══════════ */}
+          <div style={{ background: '#0f172a', padding: '14px 40px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>{profile?.company_name || 'Mon Entreprise'}</span>
               {profile?.footer_text && (
-                <p className="text-slate-500 text-xs text-center flex-1">{profile.footer_text}</p>
+                <span style={{ color: '#475569', fontSize: '10px', flex: 1, textAlign: 'center' }}>{profile.footer_text}</span>
               )}
-              <div className="text-right text-[10px] text-slate-600 space-x-3">
+              <div style={{ display: 'flex', gap: '16px', fontSize: '10px', color: '#334155' }}>
                 {profile?.siret && <span>SIRET : {profile.siret}</span>}
                 {profile?.vat_number && <span>TVA : {profile.vat_number}</span>}
               </div>
@@ -397,8 +411,8 @@ export default function InvoiceDetailPage() {
 
         </div>
 
-        {/* ── ACTIONS BAS ── */}
-        <div className="no-print max-w-4xl mx-auto mt-4 flex flex-wrap gap-3">
+        {/* ACTIONS BAS */}
+        <div className="no-print max-w-[210mm] mx-auto mt-4 flex flex-wrap gap-3">
           {invoice.status === 'draft' && (
             <button onClick={() => updateStatus('sent')}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
