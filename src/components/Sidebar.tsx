@@ -16,6 +16,7 @@ import {
   XMarkIcon,
   DocumentCurrencyEuroIcon,
   CreditCardIcon,
+  EnvelopeIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
@@ -29,6 +30,7 @@ const navigation = [
 
 const bottomNavigation = [
   { name: 'Abonnement', href: '/abonnement', icon: CreditCardIcon },
+  { name: 'Nous contacter', href: '/contact', icon: EnvelopeIcon },
 ]
 
 export default function Sidebar() {

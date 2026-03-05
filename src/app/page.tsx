@@ -548,7 +548,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ — for SEO */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-white">
+      <section id="faq" className="py-12 sm:py-16 px-4 sm:px-6 bg-white scroll-mt-20">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-6 sm:mb-8 text-center">Questions fréquentes</h2>
           <div className="space-y-4">
@@ -585,7 +585,7 @@ export default function LandingPage() {
       </section>
 
       {/* CONTACT */}
-      <section id="contact" className="py-16 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
+      <section id="contact" className="py-16 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white scroll-mt-20">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3">
