@@ -56,7 +56,7 @@ export default function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
       {/* Logo */}
-      <a href="https://factures-tpe.fr" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+      <Link href="/dashboard" className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors">
         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
           <DocumentCurrencyEuroIcon className="w-5 h-5 text-white" />
         </div>

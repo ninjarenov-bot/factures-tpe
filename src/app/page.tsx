@@ -242,10 +242,16 @@ export default function LandingPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setIsLoggedIn(true)
+    // getSession() est instantané (lit le cookie local) — évite le flash "Connexion"
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setIsLoggedIn(true)
+    })
+    // Écoute les changements d'état (connexion Google OAuth, déconnexion...)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user)
     })
     if (!localStorage.getItem(PROMO_KEY)) setShowBanner(true)
+    return () => subscription.unsubscribe()
   }, [])
 
   function dismissBanner() {
