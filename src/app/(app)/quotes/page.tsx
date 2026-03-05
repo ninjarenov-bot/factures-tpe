@@ -239,7 +239,7 @@ export default function QuotesPage() {
                         <div className="flex items-center justify-center gap-1">
                           {/* Modifier */}
                           <Link
-                            href={`/quotes/${quote.id}`}
+                            href={`/quotes/new?edit=${quote.id}`}
                             onClick={e => e.stopPropagation()}
                             title="Modifier"
                             className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"

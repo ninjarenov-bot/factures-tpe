@@ -256,7 +256,7 @@ export default function InvoicesPage() {
                         <div className="flex items-center justify-center gap-1">
                           {/* Modifier */}
                           <Link
-                            href={`/invoices/${invoice.id}`}
+                            href={`/invoices/new?edit=${invoice.id}`}
                             onClick={e => e.stopPropagation()}
                             title="Modifier"
                             className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
