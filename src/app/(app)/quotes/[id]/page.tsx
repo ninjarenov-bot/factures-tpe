@@ -120,9 +120,6 @@ export default function QuoteDetailPage() {
     profile?.company_name || '',
   ].filter(l => l !== undefined).join('\n').trim()
 
-  // Couleur du total selon statut
-  const totalBg = isAccepted ? '#16a34a' : isRefused ? '#dc2626' : '#0f172a'
-
   return (
     <div className="flex flex-col min-h-screen">
 
@@ -194,15 +191,17 @@ export default function QuoteDetailPage() {
             </div>
           )}
 
-          {/* ══════════ HEADER SOMBRE ══════════ */}
-          <div style={{ background: '#0f172a', padding: '32px 40px 28px' }}>
+          {/* ══════════ HEADER ══════════ */}
+          {/* Barre accent violet */}
+          <div style={{ height: '5px', background: 'linear-gradient(to right, #7c3aed, #8b5cf6, #a78bfa)' }} />
+          <div style={{ background: 'white', padding: '32px 40px 28px', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '32px' }}>
 
               {/* Logo + Société */}
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flex: 1 }}>
                 {profile?.logo_url ? (
                   <img src={profile.logo_url} alt="Logo"
-                    style={{ width: '56px', height: '56px', objectFit: 'contain', border: '1px solid rgba(255,255,255,0.1)' }} />
+                    style={{ width: '56px', height: '56px', objectFit: 'contain', border: '1px solid #e5e7eb' }} />
                 ) : (
                   <div style={{ width: '56px', height: '56px', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <span style={{ color: 'white', fontWeight: 900, fontSize: '22px' }}>
@@ -211,24 +210,24 @@ export default function QuoteDetailPage() {
                   </div>
                 )}
                 <div>
-                  <div style={{ color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4px' }}>Vendeur</div>
-                  <div style={{ color: 'white', fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>{profile?.company_name || 'Mon Entreprise'}</div>
-                  {profile?.address && <div style={{ color: '#94a3b8', fontSize: '11px' }}>{profile.address}</div>}
+                  <div style={{ color: '#6b7280', fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '4px' }}>Vendeur</div>
+                  <div style={{ color: '#111827', fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>{profile?.company_name || 'Mon Entreprise'}</div>
+                  {profile?.address && <div style={{ color: '#374151', fontSize: '11px' }}>{profile.address}</div>}
                   {(profile?.postal_code || profile?.city) && (
-                    <div style={{ color: '#94a3b8', fontSize: '11px' }}>{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</div>
+                    <div style={{ color: '#374151', fontSize: '11px' }}>{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</div>
                   )}
-                  {profile?.phone && <div style={{ color: '#94a3b8', fontSize: '11px', marginTop: '4px' }}>{profile.phone}</div>}
-                  {profile?.email && <div style={{ color: '#94a3b8', fontSize: '11px' }}>{profile.email}</div>}
-                  {profile?.siret && <div style={{ color: '#64748b', fontSize: '10px', marginTop: '6px' }}>SIRET : {profile.siret}</div>}
-                  {profile?.vat_number && <div style={{ color: '#64748b', fontSize: '10px' }}>N° TVA : {profile.vat_number}</div>}
+                  {profile?.phone && <div style={{ color: '#374151', fontSize: '11px', marginTop: '4px' }}>{profile.phone}</div>}
+                  {profile?.email && <div style={{ color: '#374151', fontSize: '11px' }}>{profile.email}</div>}
+                  {profile?.siret && <div style={{ color: '#6b7280', fontSize: '10px', marginTop: '6px' }}>SIRET : {profile.siret}</div>}
+                  {profile?.vat_number && <div style={{ color: '#6b7280', fontSize: '10px' }}>N° TVA : {profile.vat_number}</div>}
                 </div>
               </div>
 
               {/* Numéro + Dates */}
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ color: '#a78bfa', fontSize: '10px', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>DEVIS</div>
-                <div style={{ color: 'white', fontWeight: 900, fontSize: '36px', lineHeight: 1, marginTop: '4px', letterSpacing: '-1px' }}>{quote.number}</div>
-                <div style={{ marginTop: '16px', borderTop: '1px solid #1e293b', paddingTop: '12px' }}>
+                <div style={{ color: '#7c3aed', fontSize: '10px', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>DEVIS</div>
+                <div style={{ color: '#111827', fontWeight: 900, fontSize: '36px', lineHeight: 1, marginTop: '4px', letterSpacing: '-1px' }}>{quote.number}</div>
+                <div style={{ marginTop: '16px', borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
                   {[
                     { label: 'Date du devis', value: formatDate(quote.issue_date) },
                     quote.valid_until ? { label: "Valable jusqu'au", value: formatDate(quote.valid_until) } : null,
@@ -236,8 +235,8 @@ export default function QuoteDetailPage() {
                     (quote as any).refused_at ? { label: 'Refusé le', value: formatDate((quote as any).refused_at), red: true } : null,
                   ].filter(Boolean).map((row: any, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'flex-end', gap: '24px', marginBottom: '4px' }}>
-                      <span style={{ color: '#64748b', fontSize: '11px' }}>{row.label}</span>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: row.green ? '#4ade80' : row.red ? '#f87171' : '#cbd5e1', minWidth: '80px', textAlign: 'right' }}>{row.value}</span>
+                      <span style={{ color: '#6b7280', fontSize: '11px' }}>{row.label}</span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: row.green ? '#16a34a' : row.red ? '#dc2626' : '#111827', minWidth: '80px', textAlign: 'right' }}>{row.value}</span>
                     </div>
                   ))}
                 </div>
@@ -248,14 +247,11 @@ export default function QuoteDetailPage() {
             </div>
           </div>
 
-          {/* Barre accent violet */}
-          <div style={{ height: '4px', background: 'linear-gradient(to right, #7c3aed, #8b5cf6, #a78bfa)' }} />
-
           {/* ══════════ ADRESSES ══════════ */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0', borderBottom: '1px solid #e2e8f0' }}>
             {/* Vendeur */}
             <div style={{ padding: '20px 24px 20px 40px', borderRight: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Vendeur :</div>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Vendeur :</div>
               <div style={{ fontWeight: 700, color: '#111827', fontSize: '13px' }}>{profile?.company_name || 'Mon Entreprise'}</div>
               {profile?.address && <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '2px' }}>{profile.address}</div>}
               {(profile?.postal_code || profile?.city) && <div style={{ color: '#6b7280', fontSize: '12px' }}>{[profile?.postal_code, profile?.city].filter(Boolean).join(' ')}</div>}
@@ -264,7 +260,7 @@ export default function QuoteDetailPage() {
             </div>
             {/* Client */}
             <div style={{ padding: '20px 40px 20px 24px', borderLeft: '3px solid #7c3aed' }}>
-              <div style={{ fontSize: '9px', fontWeight: 700, color: '#7c3aed', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Client :</div>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#6d28d9', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Client :</div>
               {client ? (
                 <>
                   <div style={{ fontWeight: 700, color: '#111827', fontSize: '13px' }}>{getClientName(client)}</div>
@@ -282,41 +278,41 @@ export default function QuoteDetailPage() {
 
           {/* Objet */}
           {quote.subject && (
-            <div style={{ padding: '10px 40px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Objet : </span>
-              <span style={{ fontSize: '13px', color: '#1e293b' }}>{quote.subject}</span>
+            <div style={{ padding: '10px 40px', background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Objet : </span>
+              <span style={{ fontSize: '13px', color: '#111827' }}>{quote.subject}</span>
             </div>
           )}
 
           {/* ══════════ TABLEAU ARTICLES ══════════ */}
           <div style={{ padding: '24px 40px 0' }}>
-            <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
               Détail du devis :
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
-                <tr style={{ background: '#0f172a' }}>
-                  <th style={{ textAlign: 'left', padding: '10px 12px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b' }}>
+                <tr style={{ background: '#f3f4f6' }}>
+                  <th style={{ textAlign: 'left', padding: '9px 12px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db' }}>
                     Désignation
                   </th>
-                  <th style={{ textAlign: 'center', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '60px' }}>
+                  <th style={{ textAlign: 'center', padding: '9px 10px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '60px' }}>
                     Qté
                   </th>
-                  <th style={{ textAlign: 'right', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '90px' }}>
+                  <th style={{ textAlign: 'right', padding: '9px 10px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '90px' }}>
                     P.U. HT
                   </th>
                   {hasDiscount && (
-                    <th style={{ textAlign: 'center', padding: '10px 8px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '60px' }}>
+                    <th style={{ textAlign: 'center', padding: '9px 8px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '60px' }}>
                       Remise
                     </th>
                   )}
-                  <th style={{ textAlign: 'center', padding: '10px 8px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '55px' }}>
+                  <th style={{ textAlign: 'center', padding: '9px 8px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '55px' }}>
                     TVA
                   </th>
-                  <th style={{ textAlign: 'right', padding: '10px 10px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '90px' }}>
+                  <th style={{ textAlign: 'right', padding: '9px 10px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '90px' }}>
                     Total HT
                   </th>
-                  <th style={{ textAlign: 'right', padding: '10px 12px', color: '#94a3b8', fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', border: '1px solid #1e293b', width: '100px' }}>
+                  <th style={{ textAlign: 'right', padding: '9px 12px', color: '#111827', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', borderBottom: '2px solid #d1d5db', width: '100px' }}>
                     Total TTC
                   </th>
                 </tr>
@@ -324,30 +320,29 @@ export default function QuoteDetailPage() {
               <tbody>
                 {items.map((item: any, idx: number) => {
                   const totalTTC = item.total * (1 + item.vat_rate / 100)
-                  const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc'
                   return (
-                    <tr key={idx} style={{ background: rowBg }}>
-                      <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', color: '#111827', fontWeight: 600, verticalAlign: 'top' }}>
+                    <tr key={idx} style={{ background: 'white' }}>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #e5e7eb', color: '#111827', fontWeight: 600, verticalAlign: 'top' }}>
                         {item.description}
                       </td>
-                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#374151' }}>
-                        {item.quantity}{item.unit && <span style={{ color: '#9ca3af', fontSize: '10px' }}> {item.unit}</span>}
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'center', color: '#111827' }}>
+                        {item.quantity}{item.unit && <span style={{ color: '#6b7280', fontSize: '10px' }}> {item.unit}</span>}
                       </td>
-                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827' }}>
                         {formatCurrency(item.unit_price)}
                       </td>
                       {hasDiscount && (
-                        <td style={{ padding: '10px 8px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#6b7280' }}>
+                        <td style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', textAlign: 'center', color: '#111827' }}>
                           {item.discount_percent > 0 ? `${item.discount_percent}%` : '—'}
                         </td>
                       )}
-                      <td style={{ padding: '10px 8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                      <td style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', textAlign: 'center' }}>
                         <span style={{ color: '#6d28d9', fontWeight: 700, fontSize: '11px' }}>{item.vat_rate}%</span>
                       </td>
-                      <td style={{ padding: '10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151', fontWeight: 600 }}>
+                      <td style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827', fontWeight: 600 }}>
                         {formatCurrency(item.total)}
                       </td>
-                      <td style={{ padding: '10px 12px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#111827', fontWeight: 700 }}>
+                      <td style={{ padding: '10px 12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827', fontWeight: 700 }}>
                         {formatCurrency(totalTTC)}
                       </td>
                     </tr>
@@ -362,25 +357,25 @@ export default function QuoteDetailPage() {
 
             {/* Tableau TVA */}
             <div>
-              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Détail TVA :
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead>
-                  <tr style={{ background: '#f1f5f9' }}>
-                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Taux TVA</th>
-                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant HT</th>
-                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant TVA</th>
-                    <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, color: '#475569', fontSize: '10px' }}>Montant TTC</th>
+                  <tr style={{ background: '#f3f4f6' }}>
+                    <th style={{ padding: '7px 10px', borderBottom: '2px solid #d1d5db', textAlign: 'center', fontWeight: 700, color: '#111827', fontSize: '10px' }}>Taux TVA</th>
+                    <th style={{ padding: '7px 10px', borderBottom: '2px solid #d1d5db', textAlign: 'right', fontWeight: 700, color: '#111827', fontSize: '10px' }}>Montant HT</th>
+                    <th style={{ padding: '7px 10px', borderBottom: '2px solid #d1d5db', textAlign: 'right', fontWeight: 700, color: '#111827', fontSize: '10px' }}>Montant TVA</th>
+                    <th style={{ padding: '7px 10px', borderBottom: '2px solid #d1d5db', textAlign: 'right', fontWeight: 700, color: '#111827', fontSize: '10px' }}>Montant TTC</th>
                   </tr>
                 </thead>
                 <tbody>
                   {Object.entries(taxByRate).map(([rate, vals]) => (
                     <tr key={rate} style={{ background: 'white' }}>
-                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#6d28d9', fontWeight: 700 }}>{rate} %</td>
-                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>{formatCurrency(vals.ht)}</td>
-                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#374151' }}>{formatCurrency(vals.tva)}</td>
-                      <td style={{ padding: '7px 10px', border: '1px solid #e2e8f0', textAlign: 'right', color: '#111827', fontWeight: 700 }}>{formatCurrency(vals.ttc)}</td>
+                      <td style={{ padding: '7px 10px', borderBottom: '1px solid #e5e7eb', textAlign: 'center', color: '#6d28d9', fontWeight: 700 }}>{rate} %</td>
+                      <td style={{ padding: '7px 10px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827' }}>{formatCurrency(vals.ht)}</td>
+                      <td style={{ padding: '7px 10px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827' }}>{formatCurrency(vals.tva)}</td>
+                      <td style={{ padding: '7px 10px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', color: '#111827', fontWeight: 700 }}>{formatCurrency(vals.ttc)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -389,32 +384,32 @@ export default function QuoteDetailPage() {
 
             {/* Totaux */}
             <div>
-              <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Montant du devis :
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>Total montant HT</td>
-                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(quote.subtotal)}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', color: '#374151' }}>Total montant HT</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(quote.subtotal)}</td>
                   </tr>
                   {quote.discount_amount > 0 && (
                     <tr>
-                      <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>
+                      <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', color: '#374151' }}>
                         Remise{(quote as any).discount_percent > 0 ? ` (${(quote as any).discount_percent}%)` : ''}
                       </td>
-                      <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#dc2626' }}>− {formatCurrency(quote.discount_amount)}</td>
+                      <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: '#dc2626' }}>− {formatCurrency(quote.discount_amount)}</td>
                     </tr>
                   )}
                   <tr>
-                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', color: '#6b7280' }}>Total montant TVA</td>
-                    <td style={{ padding: '8px 12px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(quote.tax_amount)}</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', color: '#374151' }}>Total montant TVA</td>
+                    <td style={{ padding: '8px 12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: '#111827' }}>{formatCurrency(quote.tax_amount)}</td>
                   </tr>
-                  <tr style={{ background: totalBg }}>
-                    <td style={{ padding: '12px 12px', border: `1px solid ${totalBg}`, color: 'white', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <tr style={{ background: '#f3f4f6' }}>
+                    <td style={{ padding: '12px 12px', borderTop: '2px solid #d1d5db', color: '#111827', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       {isAccepted ? '✓ Devis accepté' : isRefused ? '✗ Devis refusé' : 'Total TTC'}
                     </td>
-                    <td style={{ padding: '12px 12px', border: `1px solid ${totalBg}`, textAlign: 'right', color: 'white', fontWeight: 900, fontSize: '20px' }}>
+                    <td style={{ padding: '12px 12px', borderTop: '2px solid #d1d5db', textAlign: 'right', color: isAccepted ? '#16a34a' : isRefused ? '#dc2626' : '#111827', fontWeight: 900, fontSize: '20px' }}>
                       {formatCurrency(quote.total)}
                     </td>
                   </tr>
@@ -425,17 +420,17 @@ export default function QuoteDetailPage() {
 
           {/* ══════════ CONDITIONS & NOTES ══════════ */}
           {(quote.payment_terms || quote.notes) && (
-            <div style={{ display: 'grid', gridTemplateColumns: quote.payment_terms && quote.notes ? '1fr 1fr' : '1fr', gap: '0', borderTop: '1px solid #e2e8f0', margin: '0 40px 24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: quote.payment_terms && quote.notes ? '1fr 1fr' : '1fr', gap: '0', borderTop: '1px solid #e5e7eb', margin: '0 40px 24px' }}>
               {quote.payment_terms && (
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0', background: '#f8fafc', marginRight: quote.notes ? '12px' : 0 }}>
-                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Conditions :</div>
-                  <div style={{ fontSize: '11px', color: '#374151', fontStyle: 'italic', lineHeight: '1.6' }}>{quote.payment_terms}</div>
+                <div style={{ padding: '16px', border: '1px solid #e5e7eb', background: '#f8fafc', marginRight: quote.notes ? '12px' : 0 }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Conditions :</div>
+                  <div style={{ fontSize: '11px', color: '#111827', fontStyle: 'italic', lineHeight: '1.6' }}>{quote.payment_terms}</div>
                 </div>
               )}
               {quote.notes && (
-                <div style={{ padding: '16px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Notes :</div>
-                  <div style={{ fontSize: '11px', color: '#374151', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{quote.notes}</div>
+                <div style={{ padding: '16px', border: '1px solid #e5e7eb' }}>
+                  <div style={{ fontSize: '9px', fontWeight: 700, color: '#374151', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '8px' }}>Notes :</div>
+                  <div style={{ fontSize: '11px', color: '#111827', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{quote.notes}</div>
                 </div>
               )}
             </div>
@@ -443,19 +438,19 @@ export default function QuoteDetailPage() {
 
           {/* Mentions légales */}
           <div style={{ padding: '0 40px 20px' }}>
-            <div style={{ fontSize: '9px', color: '#9ca3af', lineHeight: '1.6', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+            <div style={{ fontSize: '9px', color: '#6b7280', lineHeight: '1.6', borderTop: '1px solid #e5e7eb', paddingTop: '12px' }}>
               Ce devis est valable jusqu&apos;à la date indiquée ci-dessus. La signature du présent devis vaut acceptation des conditions générales de vente et engagement ferme du client. Passé ce délai, une nouvelle proposition pourra être établie sur demande.
             </div>
           </div>
 
           {/* ══════════ FOOTER ══════════ */}
-          <div style={{ background: '#0f172a', padding: '14px 40px' }}>
+          <div style={{ background: '#f3f4f6', padding: '14px 40px', borderTop: '1px solid #e5e7eb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <span style={{ color: '#475569', fontSize: '11px', fontWeight: 600 }}>{profile?.company_name || 'Mon Entreprise'}</span>
+              <span style={{ color: '#111827', fontSize: '11px', fontWeight: 700 }}>{profile?.company_name || 'Mon Entreprise'}</span>
               {profile?.footer_text && (
-                <span style={{ color: '#475569', fontSize: '10px', flex: 1, textAlign: 'center' }}>{profile.footer_text}</span>
+                <span style={{ color: '#374151', fontSize: '10px', flex: 1, textAlign: 'center' }}>{profile.footer_text}</span>
               )}
-              <div style={{ display: 'flex', gap: '16px', fontSize: '10px', color: '#334155' }}>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '10px', color: '#374151' }}>
                 {profile?.siret && <span>SIRET : {profile.siret}</span>}
                 {profile?.vat_number && <span>TVA : {profile.vat_number}</span>}
               </div>

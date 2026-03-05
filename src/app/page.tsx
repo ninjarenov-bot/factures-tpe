@@ -360,59 +360,154 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section className={`${showBanner ? 'pt-36 sm:pt-40' : 'pt-24 sm:pt-28'} pb-16 sm:pb-20 px-4 sm:px-6 relative overflow-hidden transition-all duration-300`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-blue-50 -z-10" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-40 -z-10 translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-100 rounded-full blur-3xl opacity-30 -z-10 -translate-x-1/3 translate-y-1/3" />
+      <section className={`${showBanner ? 'pt-28 sm:pt-32' : 'pt-16 sm:pt-20'} pb-12 sm:pb-16 px-4 sm:px-6 bg-white transition-all duration-300`}>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 rounded-full text-indigo-700 text-xs font-semibold mb-5 sm:mb-6">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-            Conforme à la réglementation française 2025
+            {/* ── Colonne gauche ── */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-indigo-700 text-xs font-semibold mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                Conforme réglementation française 2025
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight mb-5">
+                Fini la paperasse,{' '}
+                <span className="text-indigo-600">place aux chantiers</span>
+              </h1>
+
+              <p className="text-base sm:text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
+                Créez vos factures et devis en 2 minutes, envoyez-les par email et suivez vos paiements — depuis votre téléphone ou votre bureau.
+              </p>
+
+              {/* Étapes */}
+              <ol className="space-y-4 mb-8">
+                {[
+                  { n: '1', t: 'Créez votre facture ou devis', d: 'En quelques clics, sans formation requise' },
+                  { n: '2', t: 'Envoyez à votre client', d: 'Par email directement depuis l\'application' },
+                  { n: '3', t: 'Suivez vos paiements', d: 'Tableau de bord clair, relances automatiques' },
+                ].map(step => (
+                  <li key={step.n} className="flex items-start gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center">
+                      {step.n}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{step.t}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{step.d}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {isLoggedIn ? (
+                  <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-100 text-sm">
+                    Accéder à mon espace <ArrowRightIcon className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-100 text-sm">
+                      Commencer gratuitement <ArrowRightIcon className="w-4 h-4" />
+                    </Link>
+                    <a href="#pricing" className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+                      Voir les tarifs
+                    </a>
+                  </>
+                )}
+              </div>
+              {!isLoggedIn && (
+                <p className="text-xs text-gray-400 mt-3">Gratuit pour commencer · Sans carte bancaire</p>
+              )}
+            </div>
+
+            {/* ── Colonne droite : aperçu facture ── */}
+            <div className="hidden lg:flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-[420px]">
+                {/* Ombre derrière */}
+                <div className="absolute inset-0 translate-x-4 translate-y-4 bg-indigo-100 rounded-2xl" />
+                {/* Document */}
+                <div className="relative bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden text-[11px]">
+                  {/* Barre top indigo */}
+                  <div className="h-1.5 bg-indigo-600" />
+                  {/* En-tête */}
+                  <div className="px-6 pt-5 pb-4 flex justify-between items-start border-b border-gray-100">
+                    <div>
+                      <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center mb-2">
+                        <span className="text-white font-bold text-sm">P</span>
+                      </div>
+                      <p className="font-bold text-gray-900 text-sm">Plomberie Martineau</p>
+                      <p className="text-gray-400 text-[10px]">12 rue de la République · Lyon</p>
+                      <p className="text-gray-400 text-[10px]">SIRET : 123 456 789 00012</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-indigo-600 text-[9px] font-bold uppercase tracking-widest">FACTURE</p>
+                      <p className="font-black text-gray-900 text-xl leading-tight">FAC2026001</p>
+                      <p className="text-gray-400 text-[10px] mt-1">Émise le 05/03/2026</p>
+                      <p className="text-gray-400 text-[10px]">Échéance le 04/04/2026</p>
+                      <span className="inline-block mt-1.5 px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold rounded-full">En attente</span>
+                    </div>
+                  </div>
+                  {/* Client */}
+                  <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Facturer à</p>
+                    <p className="font-semibold text-gray-900">Sophie Bernard</p>
+                    <p className="text-gray-400 text-[10px]">45 avenue des Fleurs · 69003 Lyon</p>
+                  </div>
+                  {/* Tableau */}
+                  <div className="px-6 pt-3 pb-2">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="text-left py-1.5 px-2 text-[9px] font-bold text-gray-700 rounded-l">Désignation</th>
+                          <th className="text-center py-1.5 px-1 text-[9px] font-bold text-gray-700 w-8">Qté</th>
+                          <th className="text-right py-1.5 px-2 text-[9px] font-bold text-gray-700 rounded-r w-20">Total HT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { d: 'Main d\'œuvre plombier', q: '3h', p: '180,00 €' },
+                          { d: 'Remplacement robinet mitigeur', q: '1', p: '89,00 €' },
+                          { d: 'Déplacement', q: '1', p: '25,00 €' },
+                        ].map((row, i) => (
+                          <tr key={i} className="border-b border-gray-50">
+                            <td className="py-1.5 px-2 text-gray-700">{row.d}</td>
+                            <td className="py-1.5 px-1 text-center text-gray-500">{row.q}</td>
+                            <td className="py-1.5 px-2 text-right font-medium text-gray-900">{row.p}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Totaux */}
+                  <div className="px-6 pb-5">
+                    <div className="flex justify-between py-1 text-gray-500">
+                      <span>Total HT</span><span className="font-medium text-gray-900">294,00 €</span>
+                    </div>
+                    <div className="flex justify-between py-1 text-gray-500">
+                      <span>TVA 20 %</span><span className="font-medium text-gray-900">58,80 €</span>
+                    </div>
+                    <div className="flex justify-between py-2 px-3 bg-indigo-600 rounded-lg mt-2">
+                      <span className="font-bold text-white text-sm">Total TTC</span>
+                      <span className="font-black text-white text-sm">352,80 €</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-5 sm:mb-6">
-            Fini la paperasse,{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
-              place aux chantiers
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-            Factures TPE est la solution de facturation la plus simple pour les artisans et TPE. Créez des devis et factures professionnels en moins de 2 minutes — depuis votre téléphone ou votre ordinateur.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            {isLoggedIn ? (
-              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm sm:text-base">
-                Accéder à mon espace
-                <ArrowRightIcon className="w-4 h-4" />
-              </Link>
-            ) : (
-              <Link href="/auth" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm sm:text-base">
-                Essayer gratuitement
-                <ArrowRightIcon className="w-4 h-4" />
-              </Link>
-            )}
-            <a href="#features" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-gray-700 font-semibold rounded-2xl hover:bg-gray-50 border border-gray-200 transition-all text-sm sm:text-base">
-              Voir les fonctionnalités
-            </a>
-          </div>
-
-          {!isLoggedIn && (
-            <p className="text-xs sm:text-sm text-gray-400 mt-4 sm:mt-5">Gratuit pour commencer · Sans carte bancaire · Résiliable à tout moment</p>
-          )}
 
           {/* Stats */}
-          <div className="mt-12 sm:mt-16 grid grid-cols-3 gap-4 sm:gap-6 max-w-sm sm:max-w-xl mx-auto">
+          <div className="mt-12 pt-8 border-t border-gray-100 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg">
             {[
               { val: '2 min', label: 'pour créer une facture' },
               { val: '+1 200', label: 'artisans utilisateurs' },
               { val: '100%', label: 'conforme loi française' },
             ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-indigo-700">{s.val}</p>
-                <p className="text-xs text-gray-500 mt-1 leading-tight">{s.label}</p>
+              <div key={s.label}>
+                <p className="text-xl sm:text-2xl font-extrabold text-indigo-600">{s.val}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-tight">{s.label}</p>
               </div>
             ))}
           </div>
