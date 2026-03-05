@@ -178,7 +178,7 @@ export default function ClientsPage() {
               title="Aucun client"
               description="Ajoutez vos clients pour les retrouver facilement dans vos factures."
               icon={UserGroupIcon}
-              action={{ label: 'Ajouter un client', href: '#' }}
+              action={{ label: 'Ajouter un client', onClick: openCreate }}
             />
           ) : (
             <div className="overflow-x-auto">
