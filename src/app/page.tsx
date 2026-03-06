@@ -234,6 +234,7 @@ const PROMO_KEY = 'promo-printemps-2026-dismissed'
 
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const [showBanner, setShowBanner] = useState(false)
   const [codeCopied, setCodeCopied] = useState(false)
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' })
@@ -244,11 +245,13 @@ export default function LandingPage() {
     const supabase = createClient()
     // getSession() est instantané (lit le cookie local) — évite le flash "Connexion"
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setIsLoggedIn(true)
+      setIsLoggedIn(!!session?.user)
+      setAuthLoading(false)
     })
     // Écoute les changements d'état (connexion Google OAuth, déconnexion...)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session?.user)
+      setAuthLoading(false)
     })
     if (!localStorage.getItem(PROMO_KEY)) setShowBanner(true)
     return () => subscription.unsubscribe()
@@ -342,12 +345,15 @@ export default function LandingPage() {
           </Link>
           <div className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-gray-600">
             <a href="#features" className="hover:text-gray-900 transition-colors">Fonctionnalités</a>
+            <Link href="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
             <a href="#pricing" className="hover:text-gray-900 transition-colors">Tarifs</a>
             <a href="#testimonials" className="hover:text-gray-900 transition-colors">Avis</a>
             <a href="#contact" className="hover:text-gray-900 transition-colors">Contact</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {isLoggedIn ? (
+            {authLoading ? (
+              <div className="w-24 h-9 bg-gray-100 rounded-xl animate-pulse" />
+            ) : isLoggedIn ? (
               <Link href="/dashboard" className="inline-flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 whitespace-nowrap">
                 Mon espace <ArrowRightIcon className="w-3.5 h-3.5" />
               </Link>

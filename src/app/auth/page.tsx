@@ -299,9 +299,9 @@ function AuthPageInner() {
         <div className="bg-white rounded-2xl border border-sky-100 shadow-sm p-5">
           <div className="flex items-center gap-1 mb-2">
             {[1,2,3,4,5].map(i => (
-              <StarIcon key={i} className={`w-4 h-4 ${i <= 4 ? 'text-yellow-400' : 'text-yellow-200'}`} />
+              <StarIcon key={i} className="w-4 h-4 text-yellow-400" />
             ))}
-            <span className="text-sm font-bold text-gray-900 ml-1.5">4.8</span>
+            <span className="text-sm font-bold text-gray-900 ml-1.5">4,9</span>
             <span className="text-xs text-gray-400 ml-1">/ 5</span>
           </div>
           <p className="text-xs text-gray-500 mb-3">Basé sur les avis de nos utilisateurs</p>

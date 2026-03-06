@@ -2,9 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase'
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -36,31 +35,15 @@ const bottomNavigation = [
 export default function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [companyName, setCompanyName] = useState<string>('Factures TPE')
-
-  useEffect(() => {
-    const supabase = createClient()
-    const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase
-        .from('profiles')
-        .select('company_name')
-        .eq('id', user.id)
-        .single()
-      if (data?.company_name) setCompanyName(data.company_name)
-    }
-    loadProfile()
-  }, [])
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
       {/* Logo */}
-      <Link href="/dashboard" className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+      <Link href="/" className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 hover:bg-gray-50 transition-colors">
         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
           <DocumentCurrencyEuroIcon className="w-5 h-5 text-white" />
         </div>
-        <span className="text-lg font-bold text-gray-900 truncate">{companyName}</span>
+        <span className="text-lg font-bold text-gray-900 truncate">Factures TPE</span>
       </Link>
 
       {/* Navigation */}

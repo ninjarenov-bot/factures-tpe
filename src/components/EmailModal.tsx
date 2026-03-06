@@ -12,9 +12,10 @@ interface EmailModalProps {
   body: string
   docType: 'facture' | 'devis'
   docNumber: string
+  invoiceId?: string
 }
 
-export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc = '', subject, body, docType, docNumber }: EmailModalProps) {
+export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc = '', subject, body, docType, docNumber, invoiceId }: EmailModalProps) {
   const [to, setTo] = useState(defaultTo)
   const [cc, setCc] = useState(defaultCc)
   const [subjectText, setSubjectText] = useState(subject)
@@ -45,7 +46,7 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, cc, subject: subjectText, message }),
+        body: JSON.stringify({ to, cc, subject: subjectText, message, invoiceId }),
       })
 
       const data = await res.json()

@@ -36,15 +36,15 @@ export function formatDateLong(date: string | null | undefined): string {
 
 export const invoiceStatusConfig: Record<InvoiceStatus, { label: string; color: string; bg: string; dot: string }> = {
   draft: { label: 'Brouillon', color: 'text-gray-600', bg: 'bg-gray-100', dot: 'bg-gray-400' },
-  sent: { label: 'Envoyée', color: 'text-blue-700', bg: 'bg-blue-100', dot: 'bg-blue-500' },
+  sent: { label: 'À payer', color: 'text-amber-700', bg: 'bg-amber-100', dot: 'bg-amber-500' },
   paid: { label: 'Payée', color: 'text-green-700', bg: 'bg-green-100', dot: 'bg-green-500' },
-  overdue: { label: 'En retard', color: 'text-red-700', bg: 'bg-red-100', dot: 'bg-red-500' },
+  overdue: { label: 'À payer', color: 'text-red-700', bg: 'bg-red-100', dot: 'bg-red-500' },
   cancelled: { label: 'Annulée', color: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400' },
 }
 
 export const quoteStatusConfig: Record<QuoteStatus, { label: string; color: string; bg: string; dot: string }> = {
-  draft: { label: 'Brouillon', color: 'text-gray-600', bg: 'bg-gray-100', dot: 'bg-gray-400' },
-  sent: { label: 'Envoyé', color: 'text-blue-700', bg: 'bg-blue-100', dot: 'bg-blue-500' },
+  draft: { label: 'En cours', color: 'text-gray-600', bg: 'bg-gray-100', dot: 'bg-gray-400' },
+  sent: { label: 'En cours', color: 'text-blue-700', bg: 'bg-blue-100', dot: 'bg-blue-500' },
   accepted: { label: 'Accepté', color: 'text-green-700', bg: 'bg-green-100', dot: 'bg-green-500' },
   refused: { label: 'Refusé', color: 'text-red-700', bg: 'bg-red-100', dot: 'bg-red-500' },
   expired: { label: 'Expiré', color: 'text-orange-700', bg: 'bg-orange-100', dot: 'bg-orange-500' },

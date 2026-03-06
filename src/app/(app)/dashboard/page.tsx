@@ -241,7 +241,7 @@ export default function DashboardPage() {
                               quote.status === 'sent' ? 'bg-blue-100 text-blue-700' :
                               'bg-gray-100 text-gray-600'
                             }`}>
-                              {quote.status === 'accepted' ? 'Accepté' : quote.status === 'refused' ? 'Refusé' : quote.status === 'sent' ? 'Envoyé' : 'Brouillon'}
+                              {quote.status === 'accepted' ? 'Accepté' : quote.status === 'refused' ? 'Refusé' : 'En cours'}
                             </span>
                           </td>
                         </tr>

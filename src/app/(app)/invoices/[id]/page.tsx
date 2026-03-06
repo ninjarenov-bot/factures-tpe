@@ -435,6 +435,7 @@ export default function InvoiceDetailPage() {
         body={emailBody}
         docType="facture"
         docNumber={invoice.number}
+        invoiceId={invoice.id}
       />
     </div>
   )
