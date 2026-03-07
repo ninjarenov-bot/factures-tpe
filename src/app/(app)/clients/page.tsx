@@ -92,7 +92,7 @@ export default function ClientsPage() {
     if (!logoFile) return form.logo_url || null
     setUploadingLogo(true)
     const ext = logoFile.name.split('.').pop()
-    const path = `clients/${userId}/${clientId}.${ext}`
+    const path = `${userId}/clients/${clientId}.${ext}`
     const { error } = await supabase.storage
       .from('logos')
       .upload(path, logoFile, { upsert: true })
