@@ -52,6 +52,7 @@ export default function InvoiceDetailPage() {
 
   async function handleSendEmail() {
     setGeneratingPdf(true)
+    let generatedPdf: string | undefined
     try {
       const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
         import('html2canvas'),
@@ -59,13 +60,16 @@ export default function InvoiceDetailPage() {
       ])
       const element = document.getElementById('invoice-doc')
       if (element) {
+        // allowTaint:true évite les erreurs CORS sur les images (logos, etc.)
         const canvas = await html2canvas(element, {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           logging: false,
           backgroundColor: '#ffffff',
+          imageTimeout: 10000,
         })
-        const imgData = canvas.toDataURL('image/jpeg', 0.92)
+        const imgData = canvas.toDataURL('image/jpeg', 0.85)
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
         const pageW = pdf.internal.pageSize.getWidth()
         const pageH = pdf.internal.pageSize.getHeight()
@@ -78,7 +82,13 @@ export default function InvoiceDetailPage() {
           pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
           heightLeft -= pageH
         }
-        setPdfBase64(pdf.output('datauristring').split(',')[1])
+        // output('arraybuffer') puis encode en base64 — plus fiable que datauristring
+        const pdfArrayBuffer = pdf.output('arraybuffer')
+        const pdfUint8 = new Uint8Array(pdfArrayBuffer)
+        let binary = ''
+        pdfUint8.forEach(byte => { binary += String.fromCharCode(byte) })
+        generatedPdf = btoa(binary)
+        setPdfBase64(generatedPdf)
       }
     } catch (e) {
       console.error('PDF generation error:', e)

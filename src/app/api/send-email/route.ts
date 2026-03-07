@@ -235,6 +235,18 @@ export async function POST(req: NextRequest) {
           </td>
         </tr>
 
+        ${invoiceId ? `
+        <!-- CTA button - View invoice online -->
+        <tr>
+          <td style="padding:0 32px 24px;text-align:center;">
+            <a href="https://factures-tpe.fr/invoices/${invoiceId}"
+               style="display:inline-block;background:#4f46e5;color:white;padding:13px 36px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:0.03em;box-shadow:0 2px 8px rgba(79,70,229,0.35);">
+              🔗 Voir la facture en ligne &rarr;
+            </a>
+          </td>
+        </tr>
+        ` : ''}
+
         ${invoiceHtml ? `
         <!-- Separator -->
         <tr>
@@ -279,7 +291,8 @@ export async function POST(req: NextRequest) {
     attachments: pdfBase64 ? [
       {
         filename: pdfFilename || 'facture.pdf',
-        content: pdfBase64,
+        content: Buffer.from(pdfBase64, 'base64'),
+        contentType: 'application/pdf',
       }
     ] : [],
   })
