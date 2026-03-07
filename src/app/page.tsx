@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { metiers } from '@/data/metiers'
 import {
   DocumentTextIcon,
   ClipboardDocumentListIcon,
@@ -187,6 +188,20 @@ const jsonLd = {
         reviewCount: '3',
         bestRating: '5',
         worstRating: '1',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.factures-tpe.fr/#website',
+      url: 'https://www.factures-tpe.fr',
+      name: 'Factures TPE',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://www.factures-tpe.fr/blog?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
       },
     },
     {
@@ -838,6 +853,35 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* MÉTIERS — maillage interne SEO */}
+      <section className="py-14 sm:py-16 px-4 sm:px-6 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 mb-2">
+              Factures TPE pour tous les artisans
+            </h2>
+            <p className="text-sm text-gray-500">
+              Logiciel de facturation adapté à chaque métier du bâtiment et de l&apos;artisanat
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {metiers.map(m => (
+              <Link
+                key={m.slug}
+                href={`/facturation/${m.slug}`}
+                className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-50 transition-all group"
+              >
+                <span className="text-2xl">{m.emoji}</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-indigo-700 transition-colors leading-tight">{m.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Facturation →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA FINAL */}
       <section className="py-16 sm:py-20 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-indigo-600 to-blue-600 rounded-3xl p-8 sm:p-10 lg:p-14 shadow-2xl shadow-indigo-200">
@@ -855,21 +899,62 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-8 sm:py-10 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <DocumentCurrencyEuroIcon className="w-4 h-4 text-white" />
+      <footer className="border-t border-gray-100 py-10 sm:py-12 px-4 sm:px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          {/* Liens SEO — métiers */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10 pb-8 border-b border-gray-100">
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Facturation par métier</p>
+              <ul className="space-y-1.5">
+                {metiers.slice(0, 4).map(m => (
+                  <li key={m.slug}>
+                    <Link href={`/facturation/${m.slug}`} className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                      {m.emoji} {m.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <span className="font-bold text-gray-900">Factures TPE</span>
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Autres métiers</p>
+              <ul className="space-y-1.5">
+                {metiers.slice(4).map(m => (
+                  <li key={m.slug}>
+                    <Link href={`/facturation/${m.slug}`} className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                      {m.emoji} {m.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ressources</p>
+              <ul className="space-y-1.5">
+                <li><Link href="/blog" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">Blog & guides</Link></li>
+                <li><a href="#faq" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">FAQ</a></li>
+                <li><a href="#contact" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Application</p>
+              <ul className="space-y-1.5">
+                <li><Link href="/auth" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">Connexion</Link></li>
+                <li><Link href="/auth" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">Inscription gratuite</Link></li>
+                <li><a href="#pricing" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors">Tarifs</a></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm text-gray-400 text-center">© 2025 Factures TPE — Solution de facturation pour artisans et TPE</p>
-          <div className="flex gap-4 text-sm text-gray-500 flex-wrap justify-center">
-            <a href="#contact" className="hover:text-gray-900">Contact</a>
-            <span>·</span>
-            <Link href="/auth" className="hover:text-gray-900">Connexion</Link>
-            <span>·</span>
-            <Link href="/auth" className="hover:text-gray-900">Inscription</Link>
+
+          {/* Bas du footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+                <DocumentCurrencyEuroIcon className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-gray-900">Factures TPE</span>
+            </div>
+            <p className="text-xs text-gray-400 text-center">© 2026 Factures TPE — Solution de facturation pour artisans et TPE</p>
+            <p className="text-xs text-gray-400">Données hébergées en Europe 🇪🇺</p>
           </div>
         </div>
       </footer>
