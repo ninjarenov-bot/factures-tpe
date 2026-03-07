@@ -81,6 +81,9 @@ export const metadata: Metadata = {
       "Créez vos factures et devis en 2 minutes. Gratuit, conforme TVA, pour artisans et petits entrepreneurs.",
     images: [`${siteUrl}/og-image.png`],
   },
+  verification: {
+    google: "wdxzst5M5i5-Xm4BwWumLJr2J-P9R9tcl5Z03RHA72A",
+  },
   other: {
     "application-name": "Factures TPE",
     "msapplication-TileColor": "#4f46e5",
