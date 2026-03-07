@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
-  const { to, cc, subject, message, invoiceId } = await req.json()
+  const { to, cc, subject, message, invoiceId, pdfBase64, pdfFilename } = await req.json()
   if (!to || !subject || !message) {
     return NextResponse.json({ error: 'Champs manquants (to, subject, message)' }, { status: 400 })
   }
@@ -276,6 +276,12 @@ export async function POST(req: NextRequest) {
     subject,
     html: htmlBody,
     text: message,
+    attachments: pdfBase64 ? [
+      {
+        filename: pdfFilename || 'facture.pdf',
+        content: pdfBase64,
+      }
+    ] : [],
   })
 
   if (error) {

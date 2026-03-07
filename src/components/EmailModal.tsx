@@ -13,9 +13,11 @@ interface EmailModalProps {
   docType: 'facture' | 'devis'
   docNumber: string
   invoiceId?: string
+  pdfBase64?: string
+  pdfFilename?: string
 }
 
-export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc = '', subject, body, docType, docNumber, invoiceId }: EmailModalProps) {
+export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc = '', subject, body, docType, docNumber, invoiceId, pdfBase64, pdfFilename }: EmailModalProps) {
   const [to, setTo] = useState(defaultTo)
   const [cc, setCc] = useState(defaultCc)
   const [subjectText, setSubjectText] = useState(subject)
@@ -46,7 +48,7 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, cc, subject: subjectText, message, invoiceId }),
+        body: JSON.stringify({ to, cc, subject: subjectText, message, invoiceId, pdfBase64, pdfFilename }),
       })
 
       const data = await res.json()
@@ -133,6 +135,14 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
                 className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>
+
+            {/* PDF badge */}
+            {pdfBase64 && (
+              <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-lg">
+                <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                <p className="text-xs text-green-700 font-medium">📎 {pdfFilename || 'facture.pdf'} — joint à l'email</p>
+              </div>
+            )}
 
             {/* Erreur */}
             {error && (

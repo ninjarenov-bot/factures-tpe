@@ -20,6 +20,8 @@ export default function InvoiceDetailPage() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
   const [showEmail, setShowEmail] = useState(false)
+  const [pdfBase64, setPdfBase64] = useState<string | undefined>()
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   useEffect(() => { loadInvoice() }, [id])
 
@@ -46,6 +48,43 @@ export default function InvoiceDetailPage() {
     if (status === 'sent') updates.sent_at = new Date().toISOString()
     await supabase.from('invoices').update(updates).eq('id', invoice.id)
     setInvoice({ ...invoice, status: status as any })
+  }
+
+  async function handleSendEmail() {
+    setGeneratingPdf(true)
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ])
+      const element = document.getElementById('invoice-doc')
+      if (element) {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        })
+        const imgData = canvas.toDataURL('image/jpeg', 0.92)
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        const pageW = pdf.internal.pageSize.getWidth()
+        const pageH = pdf.internal.pageSize.getHeight()
+        const imgH = (canvas.height * pageW) / canvas.width
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgH)
+        let heightLeft = imgH - pageH
+        while (heightLeft > 0) {
+          pdf.addPage()
+          pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
+          heightLeft -= pageH
+        }
+        setPdfBase64(pdf.output('datauristring').split(',')[1])
+      }
+    } catch (e) {
+      console.error('PDF generation error:', e)
+    }
+    setGeneratingPdf(false)
+    setShowEmail(true)
   }
 
   async function handleDelete() {
@@ -107,9 +146,13 @@ export default function InvoiceDetailPage() {
                 className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50" title="Modifier">
                 <PencilIcon className="w-4 h-4" />
               </button>
-              <button onClick={() => setShowEmail(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">
-                <EnvelopeIcon className="w-4 h-4" /><span className="hidden sm:inline">Envoyer</span>
+              <button onClick={handleSendEmail} disabled={generatingPdf}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-60">
+                {generatingPdf ? (
+                  <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span className="hidden sm:inline">Préparation...</span></>
+                ) : (
+                  <><EnvelopeIcon className="w-4 h-4" /><span className="hidden sm:inline">Envoyer</span></>
+                )}
               </button>
               <button onClick={() => window.print()}
                 className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50" title="Imprimer / PDF">
@@ -436,6 +479,8 @@ export default function InvoiceDetailPage() {
         docType="facture"
         docNumber={invoice.number}
         invoiceId={invoice.id}
+        pdfBase64={pdfBase64}
+        pdfFilename={`Facture-${invoice.number}.pdf`}
       />
     </div>
   )
