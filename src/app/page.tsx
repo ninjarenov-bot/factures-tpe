@@ -125,12 +125,12 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Organization',
-      '@id': 'https://www.factures-tpe.fr/#organization',
+      '@id': 'https://factures-tpe.fr/#organization',
       name: 'Factures TPE',
-      url: 'https://www.factures-tpe.fr',
+      url: 'https://factures-tpe.fr',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.factures-tpe.fr/og-image.png',
+        url: 'https://factures-tpe.fr/og-image.png',
       },
       description: 'Solution de facturation en ligne pour artisans et TPE françaises',
       foundingDate: '2024',
@@ -139,23 +139,23 @@ const jsonLd = {
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://www.factures-tpe.fr/#website',
-      url: 'https://www.factures-tpe.fr',
+      '@id': 'https://factures-tpe.fr/#website',
+      url: 'https://factures-tpe.fr',
       name: 'Factures TPE',
       description: 'Logiciel de facturation gratuit pour artisans et TPE',
       publisher: {
-        '@id': 'https://www.factures-tpe.fr/#organization',
+        '@id': 'https://factures-tpe.fr/#organization',
       },
       inLanguage: 'fr-FR',
     },
     {
       '@type': 'SoftwareApplication',
-      '@id': 'https://www.factures-tpe.fr/#software',
+      '@id': 'https://factures-tpe.fr/#software',
       name: 'Factures TPE',
       applicationCategory: 'BusinessApplication',
       applicationSubCategory: 'Accounting',
       operatingSystem: 'Web, iOS, Android',
-      url: 'https://www.factures-tpe.fr',
+      url: 'https://factures-tpe.fr',
       description: 'Logiciel de facturation et devis pour artisans, plombiers, électriciens, peintres et TPE. Conforme TVA, 100% en ligne.',
       offers: [
         {
@@ -192,14 +192,14 @@ const jsonLd = {
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://www.factures-tpe.fr/#website',
-      url: 'https://www.factures-tpe.fr',
+      '@id': 'https://factures-tpe.fr/#website',
+      url: 'https://factures-tpe.fr',
       name: 'Factures TPE',
       potentialAction: {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: 'https://www.factures-tpe.fr/blog?q={search_term_string}',
+          urlTemplate: 'https://factures-tpe.fr/blog?q={search_term_string}',
         },
         'query-input': 'required name=search_term_string',
       },

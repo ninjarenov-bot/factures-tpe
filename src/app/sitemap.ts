@@ -3,7 +3,7 @@ import { metiers } from '@/data/metiers'
 import { blogPosts } from '@/data/blog'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://www.factures-tpe.fr'
+  const baseUrl = 'https://factures-tpe.fr'
   const now = new Date()
 
   // Pages statiques principales

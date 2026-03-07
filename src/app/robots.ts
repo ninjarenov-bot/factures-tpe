@@ -18,7 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://www.factures-tpe.fr/sitemap.xml',
-    host: 'https://www.factures-tpe.fr',
+    sitemap: 'https://factures-tpe.fr/sitemap.xml',
+    host: 'https://factures-tpe.fr',
   }
 }

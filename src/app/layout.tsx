@@ -4,7 +4,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const siteUrl = "https://www.factures-tpe.fr";
+const siteUrl = "https://factures-tpe.fr";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
