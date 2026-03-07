@@ -50,6 +50,23 @@ export default function QuoteDetailPage() {
     setQuote({ ...quote, status: status as any })
   }
 
+  // Convertit une URL externe en data URL (évite tous les problèmes CORS avec html2canvas)
+  async function urlToDataUrl(url: string): Promise<string | null> {
+    try {
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) return null
+      const blob = await res.blob()
+      return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => resolve(null)
+        reader.readAsDataURL(blob)
+      })
+    } catch {
+      return null
+    }
+  }
+
   async function handleSendEmail() {
     setGeneratingPdf(true)
     let generatedPdf: string | undefined
@@ -59,34 +76,59 @@ export default function QuoteDetailPage() {
         import('jspdf'),
       ])
       const element = document.getElementById('quote-doc')
-      if (element) {
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          logging: false,
-          backgroundColor: '#ffffff',
-          imageTimeout: 15000,
-        })
-        const imgData = canvas.toDataURL('image/jpeg', 0.85)
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-        const pageW = pdf.internal.pageSize.getWidth()
-        const pageH = pdf.internal.pageSize.getHeight()
-        const imgH = (canvas.height * pageW) / canvas.width
+      if (!element) throw new Error('Élément quote-doc introuvable')
 
-        pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgH)
-        let heightLeft = imgH - pageH
-        while (heightLeft > 0) {
-          pdf.addPage()
-          pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
-          heightLeft -= pageH
+      // ► Étape 1 : Convertir toutes les images externes en data URL
+      //   → html2canvas n'a plus besoin de CORS, aucun risque de canvas taché
+      const imgs = Array.from(element.querySelectorAll('img')) as HTMLImageElement[]
+      const restored: Array<{ img: HTMLImageElement; src: string }> = []
+
+      await Promise.allSettled(imgs.map(async (img) => {
+        const src = img.getAttribute('src') || ''
+        if (!src || src.startsWith('data:') || src.startsWith('blob:')) return
+        const dataUrl = await urlToDataUrl(src)
+        if (dataUrl) {
+          restored.push({ img, src })
+          img.src = dataUrl
         }
-        const dataUri = pdf.output('datauristring')
-        generatedPdf = dataUri.split(',')[1]
-        setPdfBase64(generatedPdf)
+      }))
+
+      // Laisser le DOM se mettre à jour
+      await new Promise(r => setTimeout(r, 150))
+
+      // ► Étape 2 : Capture du DOM → canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: false,    // inutile : toutes les images sont en data URL
+        allowTaint: true,  // sans danger car plus d'URL externe
+        logging: false,
+        backgroundColor: '#ffffff',
+      })
+
+      // ► Étape 3 : Restaurer les src d'origine
+      restored.forEach(({ img, src }) => { img.src = src })
+
+      // ► Étape 4 : Générer le PDF
+      const imgData = canvas.toDataURL('image/jpeg', 0.85)
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pageW = pdf.internal.pageSize.getWidth()
+      const pageH = pdf.internal.pageSize.getHeight()
+      const imgH = (canvas.height * pageW) / canvas.width
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgH)
+      let heightLeft = imgH - pageH
+      while (heightLeft > 0) {
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
+        heightLeft -= pageH
       }
+      const dataUri = pdf.output('datauristring')
+      generatedPdf = dataUri.split(',')[1]
+      setPdfBase64(generatedPdf)
+
     } catch (e) {
       console.error('PDF generation error:', e)
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.')
     }
     setGeneratingPdf(false)
     setShowEmail(true)
