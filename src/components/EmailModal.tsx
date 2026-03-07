@@ -39,8 +39,17 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
 
   if (!isOpen) return null
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   const handleSend = async () => {
-    if (!to) return
+    if (!to.trim()) {
+      setError("Aucune adresse e-mail renseignée. Ajoutez-en une dans la fiche client avant d'envoyer.")
+      return
+    }
+    if (!emailRegex.test(to.trim())) {
+      setError(`L'adresse e-mail "${to.trim()}" est invalide. Corrigez-la dans la fiche client ou directement dans ce champ.`)
+      return
+    }
     setSending(true)
     setError('')
 
@@ -48,13 +57,13 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, cc, subject: subjectText, message, invoiceId, pdfBase64, pdfFilename }),
+        body: JSON.stringify({ to: to.trim(), cc: cc.trim(), subject: subjectText, message, invoiceId, pdfBase64, pdfFilename }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Erreur lors de l'envoi. Vérifiez votre clé Resend.")
+        setError(`Échec de l'envoi à "${to.trim()}". Vérifiez que l'adresse e-mail est correcte.`)
         setSending(false)
         return
       }
@@ -63,7 +72,7 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
       setSending(false)
       setTimeout(() => { setSent(false); onClose() }, 3000)
     } catch {
-      setError("Erreur réseau. Vérifiez votre connexion.")
+      setError("Erreur réseau. Vérifiez votre connexion internet.")
       setSending(false)
     }
   }
@@ -102,10 +111,18 @@ export default function EmailModal({ isOpen, onClose, defaultTo = '', defaultCc 
               <input
                 type="email"
                 value={to}
-                onChange={e => setTo(e.target.value)}
+                onChange={e => { setTo(e.target.value); setError('') }}
                 placeholder="client@exemple.fr"
-                className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  !to.trim() ? 'border-orange-300 bg-orange-50' : 'border-gray-300'
+                }`}
               />
+              {!to.trim() && (
+                <p className="mt-1 text-xs text-orange-600 flex items-center gap-1">
+                  <ExclamationCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                  Aucun e-mail client — renseignez-en un manuellement ou ajoutez-le dans la fiche client.
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Copie (CC) — votre email</label>

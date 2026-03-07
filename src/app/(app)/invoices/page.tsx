@@ -88,9 +88,14 @@ export default function InvoicesPage() {
   async function sendEmailDirect(invoice: Invoice, e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    const clientEmail = (invoice.client as any)?.email
+    const clientEmail = (invoice.client as any)?.email?.trim()
     if (!clientEmail) {
-      addToast("Ce client n'a pas d'adresse e-mail renseignée.", 'error')
+      addToast("❌ Ce client n'a pas d'adresse e-mail — ajoutez-en une dans sa fiche client.", 'error')
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(clientEmail)) {
+      addToast(`❌ L'e-mail "${clientEmail}" est invalide — corrigez-le dans la fiche client.`, 'error')
       return
     }
     setSendingIds(s => new Set(s).add(invoice.id))
@@ -106,8 +111,7 @@ export default function InvoicesPage() {
         }),
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        addToast(data.error || "Erreur lors de l'envoi.", 'error')
+        addToast(`❌ Échec de l'envoi à "${clientEmail}" — vérifiez l'adresse e-mail du client.`, 'error')
       } else {
         addToast(`✓ Facture ${invoice.number} envoyée à ${clientEmail}`, 'success')
         setSentIds(s => new Set(s).add(invoice.id))

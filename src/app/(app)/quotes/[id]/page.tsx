@@ -20,6 +20,8 @@ export default function QuoteDetailPage() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
   const [showEmail, setShowEmail] = useState(false)
+  const [pdfBase64, setPdfBase64] = useState<string | undefined>()
+  const [generatingPdf, setGeneratingPdf] = useState(false)
 
   useEffect(() => { loadQuote() }, [id])
 
@@ -46,6 +48,48 @@ export default function QuoteDetailPage() {
     if (status === 'refused') updates.refused_at = new Date().toISOString()
     await supabase.from('quotes').update(updates).eq('id', quote.id)
     setQuote({ ...quote, status: status as any })
+  }
+
+  async function handleSendEmail() {
+    setGeneratingPdf(true)
+    let generatedPdf: string | undefined
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ])
+      const element = document.getElementById('quote-doc')
+      if (element) {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          backgroundColor: '#ffffff',
+          imageTimeout: 15000,
+        })
+        const imgData = canvas.toDataURL('image/jpeg', 0.85)
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        const pageW = pdf.internal.pageSize.getWidth()
+        const pageH = pdf.internal.pageSize.getHeight()
+        const imgH = (canvas.height * pageW) / canvas.width
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pageW, imgH)
+        let heightLeft = imgH - pageH
+        while (heightLeft > 0) {
+          pdf.addPage()
+          pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
+          heightLeft -= pageH
+        }
+        const dataUri = pdf.output('datauristring')
+        generatedPdf = dataUri.split(',')[1]
+        setPdfBase64(generatedPdf)
+      }
+    } catch (e) {
+      console.error('PDF generation error:', e)
+    }
+    setGeneratingPdf(false)
+    setShowEmail(true)
   }
 
   async function convertToInvoice() {
@@ -134,9 +178,13 @@ export default function QuoteDetailPage() {
                 className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50" title="Modifier">
                 <PencilIcon className="w-4 h-4" />
               </button>
-              <button onClick={() => setShowEmail(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">
-                <EnvelopeIcon className="w-4 h-4" /><span className="hidden sm:inline">Envoyer</span>
+              <button onClick={handleSendEmail} disabled={generatingPdf}
+                className="inline-flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-60">
+                {generatingPdf ? (
+                  <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg><span className="hidden sm:inline">Préparation...</span></>
+                ) : (
+                  <><EnvelopeIcon className="w-4 h-4" /><span className="hidden sm:inline">Envoyer</span></>
+                )}
               </button>
               <button onClick={() => window.print()}
                 className="p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50" title="Imprimer / PDF">
@@ -497,6 +545,8 @@ export default function QuoteDetailPage() {
         body={emailBody}
         docType="devis"
         docNumber={quote.number}
+        pdfBase64={pdfBase64}
+        pdfFilename={`Devis-${quote.number}.pdf`}
       />
     </div>
   )

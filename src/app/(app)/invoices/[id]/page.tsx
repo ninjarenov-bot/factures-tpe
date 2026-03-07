@@ -60,14 +60,15 @@ export default function InvoiceDetailPage() {
       ])
       const element = document.getElementById('invoice-doc')
       if (element) {
-        // allowTaint:true évite les erreurs CORS sur les images (logos, etc.)
+        // useCORS: true charge les images avec CORS (headers Supabase OK)
+        // allowTaint: false évite que le canvas soit "teinté" (ce qui bloquerait toDataURL)
         const canvas = await html2canvas(element, {
           scale: 2,
           useCORS: true,
-          allowTaint: true,
+          allowTaint: false,
           logging: false,
           backgroundColor: '#ffffff',
-          imageTimeout: 10000,
+          imageTimeout: 15000,
         })
         const imgData = canvas.toDataURL('image/jpeg', 0.85)
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -82,12 +83,9 @@ export default function InvoiceDetailPage() {
           pdf.addImage(imgData, 'JPEG', 0, -(imgH - heightLeft), pageW, imgH)
           heightLeft -= pageH
         }
-        // output('arraybuffer') puis encode en base64 — plus fiable que datauristring
-        const pdfArrayBuffer = pdf.output('arraybuffer')
-        const pdfUint8 = new Uint8Array(pdfArrayBuffer)
-        let binary = ''
-        pdfUint8.forEach(byte => { binary += String.fromCharCode(byte) })
-        generatedPdf = btoa(binary)
+        // Utilise la sortie native de jsPDF (plus fiable que la conversion manuelle)
+        const dataUri = pdf.output('datauristring')
+        generatedPdf = dataUri.split(',')[1]
         setPdfBase64(generatedPdf)
       }
     } catch (e) {

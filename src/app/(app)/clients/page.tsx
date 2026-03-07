@@ -28,6 +28,7 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [form, setForm] = useState(EMPTY_CLIENT)
   const [saving, setSaving] = useState(false)
+  const [emailError, setEmailError] = useState('')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string>('')
   const [uploadingLogo, setUploadingLogo] = useState(false)
@@ -48,11 +49,13 @@ export default function ClientsPage() {
     setForm(EMPTY_CLIENT)
     setLogoFile(null)
     setLogoPreview('')
+    setEmailError('')
     setShowModal(true)
   }
 
   function openEdit(client: Client) {
     setEditingClient(client)
+    setEmailError('')
     setForm({
       type: client.type,
       company_name: client.company_name || '',
@@ -103,6 +106,16 @@ export default function ClientsPage() {
   }
 
   async function handleSave() {
+    // Validation email
+    const emailTrimmed = form.email.trim()
+    if (emailTrimmed) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(emailTrimmed)) {
+        setEmailError("Format d'e-mail invalide. Exemple : jean@exemple.fr")
+        return
+      }
+    }
+    setEmailError('')
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -334,7 +347,23 @@ export default function ClientsPage() {
                 <Field label="Prénom" value={form.first_name} onChange={v => setForm(f => ({ ...f, first_name: v }))} placeholder="Jean" />
                 <Field label="Nom" value={form.last_name} onChange={v => setForm(f => ({ ...f, last_name: v }))} placeholder="Dupont" />
               </div>
-              <Field label="Email" type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="jean@exemple.fr" />
+              <Field
+                label="Email"
+                type="email"
+                value={form.email}
+                onChange={v => {
+                  setForm(f => ({ ...f, email: v }))
+                  // Valider en temps réel dès qu'il y a du contenu
+                  if (v.trim()) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                    setEmailError(emailRegex.test(v.trim()) ? '' : "Format invalide. Exemple : jean@exemple.fr")
+                  } else {
+                    setEmailError('')
+                  }
+                }}
+                placeholder="jean@exemple.fr"
+                error={emailError}
+              />
               <Field label="Téléphone" type="tel" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} placeholder="06 12 34 56 78" />
               <Field label="Adresse" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} placeholder="12 rue de la Paix" />
               <div className="grid grid-cols-2 gap-3">
@@ -353,7 +382,7 @@ export default function ClientsPage() {
               <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
                 Annuler
               </button>
-              <button onClick={handleSave} disabled={saving || uploadingLogo} className="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
+              <button onClick={handleSave} disabled={saving || uploadingLogo || !!emailError} className="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2">
                 {(saving || uploadingLogo) && (
                   <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
@@ -370,8 +399,8 @@ export default function ClientsPage() {
   )
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text' }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string
+function Field({ label, value, onChange, placeholder, type = 'text', error }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; error?: string
 }) {
   return (
     <div>
@@ -381,8 +410,20 @@ function Field({ label, value, onChange, placeholder, type = 'text' }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 ${
+          error
+            ? 'border-red-400 bg-red-50 focus:ring-red-400'
+            : 'border-gray-300 focus:ring-indigo-500'
+        }`}
       />
+      {error && (
+        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </p>
+      )}
     </div>
   )
 }
