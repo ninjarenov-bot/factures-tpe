@@ -468,13 +468,12 @@ export async function POST(req: NextRequest) {
             <table width="100%" cellpadding="0" cellspacing="0">${messageHtml}</table>
           </td>
         </tr>
-        ${invoiceId ? `
+        ${(invoiceId || quoteId) ? `
         <tr>
           <td style="padding:0 32px 24px;text-align:center;">
-            <a href="https://factures-tpe.fr/invoices/${invoiceId}"
-               style="display:inline-block;background:#4f46e5;color:white;padding:13px 36px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;">
-              🔗 Voir la facture en ligne &rarr;
-            </a>
+            <p style="margin:0 0 10px;font-size:13px;color:#6b7280;">
+              📎 Le ${invoiceId ? 'la facture' : 'le devis'} est joint en pi&egrave;ce jointe &agrave; cet email.
+            </p>
           </td>
         </tr>` : ''}
         ${invoiceHtml ? `
@@ -505,10 +504,12 @@ export async function POST(req: NextRequest) {
     subject,
     html: htmlBody,
     text: message,
+    // Resend attend une string base64, PAS un Buffer Node.js
+    // (JSON.stringify(Buffer) → {"type":"Buffer","data":[...]} = invalide pour l'API Resend)
     attachments: attachmentBase64 ? [
       {
         filename: attachmentFilename,
-        content: Buffer.from(attachmentBase64, 'base64'),
+        content: attachmentBase64,
       }
     ] : [],
   })

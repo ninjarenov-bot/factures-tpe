@@ -108,6 +108,7 @@ export default function InvoicesPage() {
           cc: profile?.email || '',
           subject: `Facture ${invoice.number}${profile?.company_name ? ` — ${profile.company_name}` : ''}`,
           message: buildEmailBody(invoice),
+          invoiceId: invoice.id,   // ← génère le PDF et le lien côté serveur
         }),
       })
       if (!res.ok) {
