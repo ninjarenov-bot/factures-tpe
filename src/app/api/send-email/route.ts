@@ -17,6 +17,232 @@ const clientName = (client: any) => {
   return `${client.first_name || ''} ${client.last_name || ''}`.trim() || client.email || ''
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Génération PDF côté serveur avec jsPDF (Node.js)
+// Fiable : pas de CORS, pas de html2canvas, pas de dépendance navigateur
+// ─────────────────────────────────────────────────────────────────────────────
+async function generatePdfBase64(
+  type: 'facture' | 'devis',
+  data: any,
+  prof: any,
+  items: any[]
+): Promise<string | null> {
+  try {
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+    const W = 210
+    const margin = 20
+    const tableW = W - 2 * margin
+    let y = 0
+
+    const accent: [number, number, number] = type === 'devis' ? [124, 58, 237] : [79, 70, 229]
+    const gray900: [number, number, number] = [17, 24, 39]
+    const gray500: [number, number, number] = [107, 114, 128]
+    const gray200: [number, number, number] = [229, 231, 235]
+    const gray100: [number, number, number] = [243, 244, 246]
+
+    const newPageIfNeeded = (needed: number) => {
+      if (y + needed > 272) { doc.addPage(); y = margin }
+    }
+
+    // ── BARRE TOP ───────────────────────────────────────────
+    doc.setFillColor(...accent)
+    doc.rect(0, 0, W, 5, 'F')
+    y = 18
+
+    // ── SOCIÉTÉ (gauche) ─────────────────────────────────────
+    const headerStartY = y
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(...gray900)
+    doc.text(prof?.company_name || 'Mon Entreprise', margin, y)
+    y += 6
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(...gray500)
+    const companyLines = [
+      prof?.address,
+      [prof?.postal_code, prof?.city].filter(Boolean).join(' ') || null,
+      prof?.phone,
+      prof?.email,
+      prof?.siret ? `SIRET : ${prof.siret}` : null,
+      prof?.vat_number ? `N° TVA : ${prof.vat_number}` : null,
+    ].filter(Boolean) as string[]
+    for (const line of companyLines) { doc.text(line, margin, y); y += 4 }
+
+    // ── DOCUMENT INFO (droite) ────────────────────────────────
+    let ry = headerStartY
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.setTextColor(...accent)
+    doc.text(type === 'facture' ? 'FACTURE' : 'DEVIS', W - margin, ry, { align: 'right' })
+    ry += 7
+    doc.setFontSize(22)
+    doc.setTextColor(...gray900)
+    doc.text(data.number, W - margin, ry, { align: 'right' })
+    ry += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(...gray500)
+    doc.text(`Date : ${fmtDate(data.issue_date)}`, W - margin, ry, { align: 'right' }); ry += 5
+    if (data.due_date) { doc.text(`Échéance : ${fmtDate(data.due_date)}`, W - margin, ry, { align: 'right' }); ry += 5 }
+    if (data.valid_until) { doc.text(`Valable jusqu'au : ${fmtDate(data.valid_until)}`, W - margin, ry, { align: 'right' }); ry += 5 }
+
+    y = Math.max(y, ry) + 6
+
+    // ── SÉPARATEUR ────────────────────────────────────────────
+    doc.setDrawColor(...gray200); doc.setLineWidth(0.3)
+    doc.line(margin, y, W - margin, y); y += 8
+
+    // ── CLIENT ────────────────────────────────────────────────
+    const client = data.client
+    if (client) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(...accent)
+      doc.text('CLIENT :', margin, y); y += 5
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...gray900)
+      doc.text(clientName(client), margin, y); y += 5
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...gray500)
+      const cl = [
+        client.address,
+        [client.postal_code, client.city].filter(Boolean).join(' ') || null,
+        client.email,
+        client.siret ? `SIRET : ${client.siret}` : null,
+      ].filter(Boolean) as string[]
+      for (const l of cl) { doc.text(l, margin, y); y += 4 }
+    }
+    y += 4
+
+    // ── OBJET ─────────────────────────────────────────────────
+    if (data.subject) {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...gray900)
+      doc.text(`Objet : ${data.subject}`, margin, y); y += 8
+    }
+
+    newPageIfNeeded(25)
+
+    // ── TABLEAU ARTICLES ──────────────────────────────────────
+    const colDesc = tableW - 90, colQty = 18, colPU = 28, colTVA = 14, colTTC = 30
+
+    // En-tête tableau
+    doc.setFillColor(...gray100)
+    doc.rect(margin, y, tableW, 7, 'F')
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...gray900)
+    let cx = margin + 3
+    doc.text('Désignation', cx, y + 5); cx += colDesc
+    doc.text('Qté', cx + colQty / 2, y + 5, { align: 'center' }); cx += colQty
+    doc.text('P.U. HT', cx + colPU - 3, y + 5, { align: 'right' }); cx += colPU
+    doc.text('TVA', cx + colTVA / 2, y + 5, { align: 'center' }); cx += colTVA
+    doc.text('Total TTC', cx + colTTC - 3, y + 5, { align: 'right' })
+    y += 7
+    doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.4)
+    doc.line(margin, y, margin + tableW, y)
+
+    // Lignes articles
+    for (const item of items) {
+      const totalTTC = item.total * (1 + item.vat_rate / 100)
+      const descLines = doc.splitTextToSize(item.description || '', colDesc - 4) as string[]
+      const rowH = Math.max(7, descLines.length * 5)
+      newPageIfNeeded(rowH + 4)
+
+      y += 2
+      cx = margin + 3
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...gray900)
+      doc.text(descLines, cx, y + rowH / 2); cx += colDesc
+
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(...gray500)
+      doc.text(`${item.quantity}${item.unit ? ' ' + item.unit : ''}`, cx + colQty / 2, y + rowH / 2, { align: 'center' }); cx += colQty
+      doc.text(fmtCurrency(item.unit_price), cx + colPU - 3, y + rowH / 2, { align: 'right' }); cx += colPU
+      doc.setTextColor(...accent); doc.setFont('helvetica', 'bold')
+      doc.text(`${item.vat_rate}%`, cx + colTVA / 2, y + rowH / 2, { align: 'center' }); cx += colTVA
+      doc.setTextColor(...gray900)
+      doc.text(fmtCurrency(totalTTC), cx + colTTC - 3, y + rowH / 2, { align: 'right' })
+
+      y += rowH + 2
+      doc.setDrawColor(...gray200); doc.setLineWidth(0.2)
+      doc.line(margin, y, margin + tableW, y)
+    }
+    y += 8
+
+    // ── TOTAUX ────────────────────────────────────────────────
+    newPageIfNeeded(35)
+    const totW = 65, totX = W - margin - totW
+
+    const drawTotalRow = (label: string, value: string, highlight = false, red = false) => {
+      if (highlight) {
+        doc.setFillColor(...accent)
+        doc.rect(totX - 5, y - 4, totW + 8, 10, 'F')
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(255, 255, 255)
+        doc.text(label, totX, y + 3)
+        doc.text(value, totX + totW, y + 3, { align: 'right' })
+        y += 12
+      } else {
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9)
+        doc.setTextColor(red ? 220 : 107, red ? 38 : 114, red ? 38 : 128)
+        doc.text(label, totX, y)
+        doc.setTextColor(red ? 220 : 17, red ? 38 : 24, red ? 38 : 39)
+        doc.text(value, totX + totW, y, { align: 'right' })
+        y += 6
+      }
+    }
+
+    drawTotalRow('Total HT :', fmtCurrency(data.subtotal))
+    drawTotalRow('TVA :', fmtCurrency(data.tax_amount))
+    if (data.discount_amount > 0) drawTotalRow('Remise :', `− ${fmtCurrency(data.discount_amount)}`, false, true)
+    y += 2
+    drawTotalRow(type === 'facture' ? 'TOTAL À PAYER :' : 'TOTAL TTC :', fmtCurrency(data.total), true)
+    y += 8
+
+    // ── COORDONNÉES BANCAIRES ──────────────────────────────────
+    if (prof?.bank_iban) {
+      const bankLines = [
+        prof.bank_name || null,
+        `IBAN : ${prof.bank_iban}`,
+        prof.bank_bic ? `BIC : ${prof.bank_bic}` : null,
+      ].filter(Boolean) as string[]
+      const bankH = 10 + bankLines.length * 5
+      newPageIfNeeded(bankH + 4)
+      doc.setFillColor(239, 246, 255)
+      doc.rect(margin, y, tableW, bankH, 'F')
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(29, 78, 216)
+      doc.text('COORDONNÉES BANCAIRES', margin + 5, y + 6)
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(30, 64, 175)
+      let ly = y + 12
+      for (const l of bankLines) { doc.text(l, margin + 5, ly); ly += 5 }
+      y += bankH + 6
+    }
+
+    // ── NOTES ─────────────────────────────────────────────────
+    if (data.notes) {
+      newPageIfNeeded(20)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...gray500)
+      doc.text('Notes :', margin, y); y += 5
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...gray900)
+      const noteLines = doc.splitTextToSize(data.notes, tableW) as string[]
+      doc.text(noteLines, margin, y)
+    }
+
+    // ── FOOTER ────────────────────────────────────────────────
+    const footerY = 287
+    doc.setDrawColor(...gray200); doc.setLineWidth(0.3)
+    doc.line(margin, footerY - 4, W - margin, footerY - 4)
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...gray500)
+    doc.text(prof?.company_name || '', margin, footerY)
+    const fr = [prof?.siret ? `SIRET : ${prof.siret}` : null, prof?.vat_number ? `TVA : ${prof.vat_number}` : null].filter(Boolean).join(' — ')
+    if (fr) doc.text(fr, W - margin, footerY, { align: 'right' })
+
+    return doc.output('datauristring').split(',')[1]
+
+  } catch (err) {
+    console.error('[generatePdf] Erreur :', err)
+    return null
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HTML de la facture (pour le corps de l'email)
+// ─────────────────────────────────────────────────────────────────────────────
 function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
   const client = inv.client
   const isPaid = inv.status === 'paid'
@@ -55,12 +281,9 @@ function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
     </tr>` : ''
 
   return `
-    <!-- Invoice box -->
     <tr>
       <td style="padding:0 0 24px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-
-          <!-- Purple header -->
           <tr>
             <td style="background:#4f46e5;padding:20px 24px;">
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -80,8 +303,6 @@ function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
               </table>
             </td>
           </tr>
-
-          <!-- Client info -->
           ${client ? `
           <tr>
             <td style="background:#f9fafb;padding:14px 24px;border-bottom:1px solid #e5e7eb;">
@@ -92,16 +313,12 @@ function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
               ${client.siret ? `<div style="font-size:11px;color:#9ca3af;margin-top:2px;">SIRET : ${client.siret}</div>` : ''}
             </td>
           </tr>` : ''}
-
-          <!-- Subject -->
           ${inv.subject ? `
           <tr>
             <td style="background:white;padding:10px 24px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#111827;">
               <strong>Objet :</strong> ${inv.subject}
             </td>
           </tr>` : ''}
-
-          <!-- Items table -->
           <tr>
             <td style="padding:0;">
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -116,8 +333,6 @@ function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
               </table>
             </td>
           </tr>
-
-          <!-- Totals -->
           <tr>
             <td style="padding:0;">
               <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e5e7eb;">
@@ -141,16 +356,17 @@ function buildInvoiceHtml(inv: any, prof: any, items: any[]): string {
               </table>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
-
     ${paymentTermsHtml}
     ${bankHtml}
   `
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/send-email
+// ─────────────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -161,27 +377,55 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
-  const { to, cc, subject, message, invoiceId, pdfBase64, pdfFilename } = await req.json()
+  const { to, cc, subject, message, invoiceId, quoteId } = await req.json()
   if (!to || !subject || !message) {
     return NextResponse.json({ error: 'Champs manquants (to, subject, message)' }, { status: 400 })
   }
 
-  // Fetch invoice + profile if invoiceId provided
+  // Fetch profile (always needed)
+  const profileRes = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  const prof = profileRes.data
+
+  // ── Facture : HTML email + PDF pièce jointe ─────────────────
   let invoiceHtml = ''
+  let attachmentBase64: string | null = null
+  let attachmentFilename = 'document.pdf'
+
   if (invoiceId) {
-    const [invoiceRes, profileRes] = await Promise.all([
-      supabase.from('invoices').select('*, client:clients(*), items:invoice_items(*)').eq('id', invoiceId).single(),
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-    ])
-    if (invoiceRes.data && profileRes.data) {
-      const items = (invoiceRes.data.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
-      invoiceHtml = buildInvoiceHtml(invoiceRes.data, profileRes.data, items)
+    const invoiceRes = await supabase
+      .from('invoices')
+      .select('*, client:clients(*), items:invoice_items(*)')
+      .eq('id', invoiceId)
+      .single()
+
+    if (invoiceRes.data && prof) {
+      const inv = invoiceRes.data as any
+      const items = (inv.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
+      invoiceHtml = buildInvoiceHtml(inv, prof, items)
+      attachmentFilename = `Facture-${inv.number}.pdf`
+      attachmentBase64 = await generatePdfBase64('facture', inv, prof, items)
+    }
+  }
+
+  // ── Devis : PDF pièce jointe ────────────────────────────────
+  if (quoteId) {
+    const quoteRes = await supabase
+      .from('quotes')
+      .select('*, client:clients(*), items:quote_items(*)')
+      .eq('id', quoteId)
+      .single()
+
+    if (quoteRes.data && prof) {
+      const q = quoteRes.data as any
+      const items = (q.items || []).sort((a: any, b: any) => a.sort_order - b.sort_order)
+      attachmentFilename = `Devis-${q.number}.pdf`
+      attachmentBase64 = await generatePdfBase64('devis', q, prof, items)
     }
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
 
-  // Convert message text to HTML paragraphs
+  // Corps HTML de l'email
   const messageHtml = message.split('\n').map((line: string) =>
     line.trim() === ''
       ? '<tr><td style="height:8px;"></td></tr>'
@@ -195,15 +439,11 @@ export async function POST(req: NextRequest) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
-
-        <!-- Top accent bar -->
         <tr><td style="height:5px;background:#4f46e5;font-size:0;line-height:0;">&nbsp;</td></tr>
-
-        <!-- Logo/Brand header -->
         <tr>
           <td style="padding:24px 32px 20px;border-bottom:1px solid #f3f4f6;">
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -218,54 +458,32 @@ export async function POST(req: NextRequest) {
                     </tr>
                   </table>
                 </td>
-                <td align="right" style="font-size:12px;color:#9ca3af;">
-                  Document envoy&eacute; automatiquement
-                </td>
+                <td align="right" style="font-size:12px;color:#9ca3af;">Document envoy&eacute; automatiquement</td>
               </tr>
             </table>
           </td>
         </tr>
-
-        <!-- Message text -->
         <tr>
           <td style="padding:28px 32px 24px;">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              ${messageHtml}
-            </table>
+            <table width="100%" cellpadding="0" cellspacing="0">${messageHtml}</table>
           </td>
         </tr>
-
         ${invoiceId ? `
-        <!-- CTA button - View invoice online -->
         <tr>
           <td style="padding:0 32px 24px;text-align:center;">
             <a href="https://factures-tpe.fr/invoices/${invoiceId}"
-               style="display:inline-block;background:#4f46e5;color:white;padding:13px 36px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:0.03em;box-shadow:0 2px 8px rgba(79,70,229,0.35);">
+               style="display:inline-block;background:#4f46e5;color:white;padding:13px 36px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;">
               🔗 Voir la facture en ligne &rarr;
             </a>
           </td>
-        </tr>
-        ` : ''}
-
+        </tr>` : ''}
         ${invoiceHtml ? `
-        <!-- Separator -->
-        <tr>
-          <td style="padding:0 32px 24px;">
-            <div style="border-top:1px solid #e5e7eb;"></div>
-          </td>
-        </tr>
-
-        <!-- Invoice rendering -->
+        <tr><td style="padding:0 32px 24px;"><div style="border-top:1px solid #e5e7eb;"></div></td></tr>
         <tr>
           <td style="padding:0 32px 32px;">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              ${invoiceHtml}
-            </table>
+            <table width="100%" cellpadding="0" cellspacing="0">${invoiceHtml}</table>
           </td>
-        </tr>
-        ` : ''}
-
-        <!-- Footer -->
+        </tr>` : ''}
         <tr>
           <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:16px 32px;text-align:center;">
             <p style="margin:0;font-size:11px;color:#9ca3af;">
@@ -274,7 +492,6 @@ export async function POST(req: NextRequest) {
             </p>
           </td>
         </tr>
-
       </table>
     </td></tr>
   </table>
@@ -288,11 +505,10 @@ export async function POST(req: NextRequest) {
     subject,
     html: htmlBody,
     text: message,
-    attachments: pdfBase64 ? [
+    attachments: attachmentBase64 ? [
       {
-        filename: pdfFilename || 'facture.pdf',
-        content: Buffer.from(pdfBase64, 'base64'),
-        contentType: 'application/pdf',
+        filename: attachmentFilename,
+        content: Buffer.from(attachmentBase64, 'base64'),
       }
     ] : [],
   })
