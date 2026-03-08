@@ -31,6 +31,19 @@ async function generatePdfBase64(
     const { jsPDF } = await import('jspdf')
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
+    // Formateur de monnaie pour le PDF (jsPDF + Helvetica en Node.js) :
+    // IMPORTANT : \u20AC (€) a un code point > 255, ce qui force jsPDF à encoder
+    // toute la chaîne en UTF-16BE. En UTF-16BE, l'espace U+202F devient les octets
+    // 0x20 0x2F, lus comme "/" par le viewer PDF. Et le € se retrouve décalé.
+    // Solution : utiliser uniquement des chars ASCII purs (code < 128) → Latin-1 garanti.
+    const fmt = (amount: number): string => {
+      const n = amount ?? 0
+      const abs = Math.abs(n)
+      const intPart = Math.floor(abs).toString()
+      const decPart = (Math.round(abs * 100) % 100).toString().padStart(2, '0')
+      return (n < 0 ? '-' : '') + intPart + ',' + decPart + ' EUR'
+    }
+
     const W = 210
     const margin = 20
     const tableW = W - 2 * margin
@@ -153,11 +166,11 @@ async function generatePdfBase64(
 
       doc.setFont('helvetica', 'normal'); doc.setTextColor(...gray500)
       doc.text(`${item.quantity}${item.unit ? ' ' + item.unit : ''}`, cx + colQty / 2, y + rowH / 2, { align: 'center' }); cx += colQty
-      doc.text(fmtCurrency(item.unit_price), cx + colPU - 3, y + rowH / 2, { align: 'right' }); cx += colPU
+      doc.text(fmt(item.unit_price), cx + colPU - 3, y + rowH / 2, { align: 'right' }); cx += colPU
       doc.setTextColor(...accent); doc.setFont('helvetica', 'bold')
       doc.text(`${item.vat_rate}%`, cx + colTVA / 2, y + rowH / 2, { align: 'center' }); cx += colTVA
       doc.setTextColor(...gray900)
-      doc.text(fmtCurrency(totalTTC), cx + colTTC - 3, y + rowH / 2, { align: 'right' })
+      doc.text(fmt(totalTTC), cx + colTTC - 3, y + rowH / 2, { align: 'right' })
 
       y += rowH + 2
       doc.setDrawColor(...gray200); doc.setLineWidth(0.2)
@@ -187,11 +200,11 @@ async function generatePdfBase64(
       }
     }
 
-    drawTotalRow('Total HT :', fmtCurrency(data.subtotal))
-    drawTotalRow('TVA :', fmtCurrency(data.tax_amount))
-    if (data.discount_amount > 0) drawTotalRow('Remise :', `− ${fmtCurrency(data.discount_amount)}`, false, true)
+    drawTotalRow('Total HT :', fmt(data.subtotal))
+    drawTotalRow('TVA :', fmt(data.tax_amount))
+    if (data.discount_amount > 0) drawTotalRow('Remise :', `- ${fmt(data.discount_amount)}`, false, true)
     y += 2
-    drawTotalRow(type === 'facture' ? 'TOTAL À PAYER :' : 'TOTAL TTC :', fmtCurrency(data.total), true)
+    drawTotalRow(type === 'facture' ? 'TOTAL A PAYER :' : 'TOTAL TTC :', fmt(data.total), true)
     y += 8
 
     // ── COORDONNÉES BANCAIRES ──────────────────────────────────
