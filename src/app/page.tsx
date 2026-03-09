@@ -244,8 +244,8 @@ const jsonLd = {
   ],
 }
 
-const PROMO_CODE = 'PROMO50'
-const PROMO_KEY = 'promo-50-2026-dismissed'
+const PROMO_CODE = 'PRINTEMPS50'
+const PROMO_KEY = 'promo-printemps50-2026-dismissed'
 
 export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
