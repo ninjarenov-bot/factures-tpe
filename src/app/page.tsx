@@ -318,12 +318,12 @@ export default function LandingPage() {
       {/* PROMO BANNER */}
       {showBanner && (
         <div className="fixed top-0 inset-x-0 z-[60] flex items-center justify-center gap-2 sm:gap-3 px-10 sm:px-16 py-2.5"
-          style={{ background: 'linear-gradient(90deg, #dc2626 0%, #b91c1c 50%, #9f1239 100%)' }}>
-          {/* Icônes décoratives */}
-          <span className="hidden sm:inline text-base select-none">🔥</span>
+          style={{ background: 'linear-gradient(90deg, #16a34a 0%, #059669 50%, #0d9488 100%)' }}>
+          {/* Badge promo */}
+          <span className="hidden sm:inline bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full tracking-wide select-none">−50%</span>
           <p className="text-white text-xs sm:text-sm font-medium text-center leading-tight">
-            <span className="font-bold">Offre Limitée · -50% sur le Plan Pro ·</span>{' '}
-            <span className="hidden sm:inline">50 % de réduction sur le plan Pro avec le code </span>
+            <span className="font-bold">Offre exclusive ·</span>{' '}
+            <span className="hidden sm:inline">50 % de réduction sur le Plan Pro avec le code </span>
             <span className="sm:hidden">−50 % avec </span>
             <button
               onClick={copyCode}
@@ -338,7 +338,7 @@ export default function LandingPage() {
             </button>
             {codeCopied && <span className="text-green-200 text-xs ml-1 font-normal">Copié !</span>}
           </p>
-          <span className="hidden sm:inline text-base select-none">🔥</span>
+          <span className="hidden sm:inline bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full tracking-wide select-none">Limité</span>
           <button
             onClick={dismissBanner}
             aria-label="Fermer la promotion"
